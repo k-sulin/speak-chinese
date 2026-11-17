@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>说中文 · Speak Chinese — 0547 Topic Conversation Practice</title>
+<style>
+:root{
+  --cream:#FFF6EA; --peach:#FFE8D2; --sand:#F5D9B8; --terra:#C8553D; --terra-d:#A5402B; --gold:#F2A93B;
+  --brown:#3B2A20; --muted:#7A6455; --line:#EBCFB0; --green:#4F8A4B; --red:#B8372C; --card:#FFFDF9;
+  --r:18px; --shadow:0 6px 20px rgba(120,70,30,.12);
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--cream);color:var(--brown);font-size:16px;line-height:1.5;-webkit-text-size-adjust:100%}
+body::before{content:"";position:fixed;inset:0;z-index:-1;background:radial-gradient(900px 500px at 90% -10%,#FFD9A8 0,transparent 60%),radial-gradient(700px 500px at -10% 110%,#F8C9B0 0,transparent 60%),var(--cream)}
+button{font:inherit;cursor:pointer;border:0;border-radius:999px;color:inherit}
+button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.screen{display:none;min-height:100%}
+.screen.on{display:block}
+.wrap{max-width:860px;margin:0 auto;padding:20px 16px 40px}
+.sub{color:var(--muted)}
+.zh{font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif}
+
+/* welcome */
+.hero{text-align:center;padding:18px 0 6px}
+.hero h1{margin:0;font-size:clamp(34px,7vw,52px);letter-spacing:.04em;color:var(--terra-d)}
+.hero h1 small{display:block;font-size:.38em;letter-spacing:.02em;color:var(--brown);font-weight:600;margin-top:4px}
+.hero p{margin:8px auto 0;max-width:560px}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:18px 0}
+.step{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:12px;text-align:center;font-size:14px}
+.step b{display:block;font-size:22px;color:var(--terra)}
+h2{font-size:19px;margin:22px 0 10px}
+.chars{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.char{background:var(--card);border:2px solid var(--line);border-radius:var(--r);padding:12px 8px;text-align:center;transition:.15s;box-shadow:var(--shadow)}
+.char:hover{transform:translateY(-2px)}
+.char[aria-pressed=true]{border-color:var(--terra);background:var(--peach)}
+.char svg{width:76px;height:76px;display:block;margin:0 auto 6px}
+.char .n{font-weight:700;font-size:18px}
+.char .p{font-size:12px;color:var(--muted)}
+.char .r{font-size:13px;margin-top:2px}
+.opts{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin:14px 0}
+.switch{display:inline-flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);padding:8px 14px;border-radius:999px;font-size:14px}
+.btn{background:var(--terra);color:#fff;padding:14px 30px;font-weight:700;font-size:18px;box-shadow:var(--shadow)}
+.btn:hover:not(:disabled){background:var(--terra-d)}
+.btn:disabled{background:#d9bfae;cursor:not-allowed;box-shadow:none}
+.btn.ghost{background:var(--card);color:var(--brown);border:1px solid var(--line);box-shadow:none;font-size:15px;padding:10px 18px}
+.notice{background:#FFF1D0;border:1px solid #F0CF86;border-radius:14px;padding:10px 14px;font-size:14px;margin:12px 0}
+.notice.bad{background:#FDE3DE;border-color:#EBA79B}
+.center{text-align:center}
+.fine{font-size:13px;color:var(--muted)}
+
+/* conversation */
+#conv{height:100dvh;display:none;flex-direction:column}
+#conv.on{display:flex}
+.bar{display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(255,253,249,.92);backdrop-filter:blur(6px);border-bottom:1px solid var(--line);flex-wrap:wrap}
+.bar .who{display:flex;align-items:center;gap:8px;min-width:0}
+.bar .who svg{width:40px;height:40px;flex:none}
+.bar .who b{display:block;line-height:1.1}
+.bar .who span{font-size:12px;color:var(--muted)}
+.bar .sp{flex:1}
+.chip{background:var(--peach);border:1px solid var(--line);border-radius:999px;padding:4px 12px;font-size:14px;white-space:nowrap}
+.chip.warn{background:#FDE3DE;border-color:#EBA79B;color:var(--red);font-weight:700}
+.tog{background:var(--card);border:1px solid var(--line);padding:5px 12px;font-size:13px}
+.tog[aria-pressed=true]{background:var(--gold);border-color:var(--gold);font-weight:700}
+#chat{flex:1;overflow:auto;padding:16px 12px 8px;scroll-behavior:smooth}
+.msg{display:flex;gap:8px;margin:10px auto;max-width:760px}
+.msg.stu{flex-direction:row-reverse}
+.msg .av svg{width:38px;height:38px;display:block}
+.bub{max-width:82%;padding:10px 14px;border-radius:18px;background:var(--card);border:1px solid var(--line);box-shadow:0 2px 8px rgba(120,70,30,.08)}
+.msg.stu .bub{background:var(--terra);color:#fff;border-color:var(--terra)}
+.msg.sys{justify-content:center}
+.msg.sys .bub{background:transparent;border:0;box-shadow:none;color:var(--muted);font-size:14px;text-align:center}
+.bub .zh{font-size:20px;line-height:1.45}
+.bub .py,.bub .en{display:none;font-size:14px;color:var(--muted);margin-top:3px}
+body.py .bub .py{display:block}
+body.en .bub .en{display:block}
+.bub .tag{display:inline-block;font-size:11px;background:var(--gold);color:var(--brown);border-radius:8px;padding:0 6px;margin-left:6px;vertical-align:middle}
+.dock{border-top:1px solid var(--line);background:rgba(255,253,249,.96);padding:8px 12px calc(10px + env(safe-area-inset-bottom))}
+.dock .in{max-width:760px;margin:0 auto}
+.cue{font-size:14px;min-height:22px;display:flex;align-items:center;gap:8px;color:var(--muted);margin-bottom:6px}
+.cue .meter{flex:1;height:6px;background:var(--sand);border-radius:6px;overflow:hidden}
+.cue .meter i{display:block;height:100%;background:var(--gold);width:100%;transition:width 1s linear}
+.helpers{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.helpers button{background:var(--peach);border:1px solid var(--line);padding:6px 12px;font-size:14px}
+.helpers button:disabled{opacity:.45;cursor:not-allowed}
+.helpers .end{margin-left:auto;background:transparent;color:var(--muted)}
+.row{display:flex;gap:8px;align-items:center}
+.row input{flex:1;min-width:0;font:inherit;font-size:18px;padding:12px 16px;border:2px solid var(--line);border-radius:999px;background:#fff}
+.row input:disabled{background:#f4ece1}
+.mic{width:64px;height:64px;flex:none;background:var(--terra);color:#fff;font-size:28px;box-shadow:var(--shadow);position:relative}
+.mic.rec{background:var(--red);animation:pulse 1.2s infinite}
+.mic:disabled{background:#d9bfae;box-shadow:none;cursor:not-allowed}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(184,55,44,.55)}100%{box-shadow:0 0 0 18px rgba(184,55,44,0)}}
+.send{width:52px;height:52px;flex:none;background:var(--gold);font-size:22px;font-weight:700}
+.send:disabled{opacity:.45}
+.live:empty{display:none}
+.live{min-height:24px;font-size:18px;color:var(--terra-d);padding:0 6px 6px;text-align:center}
+
+/* report */
+.scores{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:12px;margin:12px 0}
+.sc{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px;text-align:center;box-shadow:var(--shadow)}
+.sc .big{font-size:44px;font-weight:800;color:var(--terra-d);line-height:1}
+.sc .big small{font-size:18px;color:var(--muted);font-weight:600}
+.sc .lab{font-size:14px;color:var(--muted);margin-top:4px}
+.sc .band{display:inline-block;margin-top:6px;background:var(--peach);border-radius:999px;padding:2px 12px;font-weight:700;font-size:14px}
+.sc.total{background:linear-gradient(160deg,#FFE3B8,#FFD0B5)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;margin:12px 0}
+.card h3{margin:0 0 8px;font-size:17px}
+.card ul{margin:6px 0 0;padding-left:20px}
+.card li{margin:4px 0}
+table{width:100%;border-collapse:collapse;font-size:15px}
+th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:13px;color:var(--muted);font-weight:600}
+.ok{color:var(--green);font-weight:700}.bad{color:var(--red);font-weight:700}.mid{color:#B97A10;font-weight:700}
+.qa{border-top:1px dashed var(--line);padding-top:10px;margin-top:10px}
+.qa:first-of-type{border-top:0;margin-top:0;padding-top:0}
+.qa .q{font-weight:700}
+.you{background:#FDEEE6;border-radius:12px;padding:6px 10px;margin:6px 0}
+.better{background:#EAF5E6;border-radius:12px;padding:6px 10px;margin:6px 0}
+.lbl{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:700}
+.chipw{display:inline-block;background:var(--peach);border-radius:10px;padding:2px 10px;margin:3px 4px 3px 0}
+.loader{padding:60px 10px;text-align:center}
+.spin{width:46px;height:46px;border-radius:50%;border:5px solid var(--sand);border-top-color:var(--terra);margin:0 auto 14px;animation:sp 1s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.rowbtn{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:18px 0}
+details{margin:4px 0}
+summary{cursor:pointer;font-weight:600}
+@media(max-width:640px){
+  .steps{grid-template-columns:1fr}
+  .scores{grid-template-columns:1fr 1fr}.scores .total{grid-column:1/-1}
+  .bub{max-width:90%}.bub .zh{font-size:19px}
+  .bar .who span{display:none}
+}
+@media print{
+  body::before{display:none}
+  .screen:not(#report){display:none!important}
+  #report{display:block!important}
+  .rowbtn,.noprint{display:none!important}
+  .card,.sc{box-shadow:none;break-inside:avoid}
+}
+</style>
+</head>
+<body>
+
+<!-- ============ WELCOME ============ -->
+<section id="welcome" class="screen on">
+  <div class="wrap">
+    <div class="hero">
+      <h1>说中文<small>Speak Chinese · 0547 Topic Conversation Practice 话题对话练习</small></h1>
+      <p>Chat with a friendly Chinese speaker, then get an estimated mark, grammar and vocabulary feedback, and ideas to improve.<br><span class="zh sub">和一位友好的中文伙伴聊天，然后得到分数估计和改进建议。</span></p>
+    </div>
+
+    <div class="steps">
+      <div class="step"><b>1</b>Pick a partner<br><span class="zh sub">选一位聊天伙伴</span></div>
+      <div class="step"><b>2</b>Talk about 2 random topics, about 4 minutes each<br><span class="zh sub">聊两个随机话题，各约4分钟</span></div>
+      <div class="step"><b>3</b>Get your estimated mark out of 30<br><span class="zh sub">得到30分制的估计分数</span></div>
+    </div>
+
+    <div id="supportNote"></div>
+
+    <h2>Choose your partner <span class="zh sub">选择你的聊天伙伴</span></h2>
+    <div class="chars" id="charList"></div>
+
+    <div class="opts">
+      <label class="switch"><input type="checkbox" id="optVoice" checked> 🔊 Partner speaks aloud <span class="zh">伙伴出声说话</span></label>
+      <label class="switch" id="codeBox" style="display:none">🔑 Class code <span class="zh">班级代码</span> <input id="codeIn" type="text" autocomplete="off" style="border:1px solid var(--line);border-radius:10px;padding:4px 8px;font:inherit;width:120px"></label>
+    </div>
+
+    <div class="center"><button class="btn" id="startBtn" disabled>Start 开始</button></div>
+
+    <p class="fine center" style="margin-top:18px">
+      How it works: you answer the questions by speaking (or typing). No feedback is given during the conversation, as in the exam. Your answers are sent to an AI to be marked, and nothing is saved on a server; audio is not recorded.<br>
+      <span class="zh">你可以说话或打字回答。聊天过程中不给反馈（和考试一样）。你的回答会发送给AI批改；服务器不保存任何内容，也不录音。</span>
+    </p>
+    <p class="fine center">The mark is an <b>estimate</b> made from a text transcript. It cannot judge pronunciation or tones, and the real exam mark may differ.<br><span class="zh">分数只是根据文字记录的<b>估计</b>，不能评判发音和声调，实际考试分数可能不同。</span></p>
+  </div>
+</section>
+
+<!-- ============ CONVERSATION ============ -->
+<section id="conv" class="screen">
+  <div class="bar">
+    <div class="who"><span id="barAv"></span><div><b id="barName"></b><span id="barRole"></span></div></div>
+    <span class="chip" id="barProg">Topic 1/2</span>
+    <span class="chip" id="barTimer">4:00</span>
+    <span class="sp"></span>
+    <button class="tog" id="togPy" aria-pressed="false">拼音 Pinyin</button>
+    <button class="tog" id="togEn" aria-pressed="false">English</button>
+    <button class="tog" id="togVoice" aria-pressed="true">🔊</button>
+  </div>
+  <div id="chat" aria-live="polite"></div>
+  <div class="dock"><div class="in">
+    <div class="cue" id="cue"></div>
+    <div class="helpers">
+      <button id="bRepeat" disabled>🔁 Repeat <span class="zh">再说一遍</span></button>
+      <button id="bSlow" disabled>🐢 Slower <span class="zh">慢一点</span></button>
+      <button id="bEasy" disabled>😊 Easier question <span class="zh">简单一点</span></button>
+      <button class="end" id="bEnd">Finish <span class="zh">结束</span></button>
+    </div>
+    <div class="live" id="live"></div>
+    <div class="row">
+      <input id="typed" type="text" lang="zh-CN" placeholder="Type your answer here 在这里打字回答" autocomplete="off" disabled>
+      <button class="send" id="bSend" title="Send" disabled>➤</button>
+      <button class="mic" id="bMic" title="Tap to speak, tap again when finished" disabled>🎤</button>
+    </div>
+  </div></div>
+</section>
+
+<!-- ============ REPORT ============ -->
+<section id="report" class="screen">
+  <div class="wrap" id="repBody"></div>
+</section>
+
+<script>
+/* ========= CONFIG (edit after deploying) ========= */
+const CONFIG = {
+  API_URL: "https://speak-chinese-marker.khoosulin.workers.dev/",        // Cloudflare Worker address. Empty = demo mode with a sample report
+  REQUIRE_CODE: true,           // true = students must type the class code
+  SILENCE_SEC: 15,               // silence before the partner switches to the easier question
+  TOPIC_SEC: 240,                // 4 minutes per topic
+  RATE: 0.85, SLOW_RATE: 0.6     // speaking speed (same for every character)
+};
+const BANK = {"topics":[{"id":"Specimen-Topic1","year":"Specimen","label":"Topic 1","warmups":["在学校你一般穿什么衣服？","请说说你最喜欢的一件衣服"],"mains":[{"A":["说说你上次买衣服的经历。比如，你买了什么？在哪儿买的？"],"B":["你最近买了什么衣服？你是在哪儿买的？"]},{"A":["长大以后买时尚的衣服对你重要吗？"],"B":["长大以后，你会买时尚的衣服吗？为什么？"]},{"A":["你觉得穿校服有什么好处或者坏处？"],"B":["你喜不喜欢穿校服？为什么？"]}]},{"id":"Specimen-Topic2","year":"Specimen","label":"Topic 2: Self, family and friends","warmups":["请说一说你的家人。","你晚上一般跟家人做些什么？"],"mains":[{"A":["请说一说你最近跟家人或者朋友做了什么？"],"B":["你上个周末跟家人或者朋友一起做了什么？"]},{"A":["你觉得好朋友重要吗？为什么？"],"B":["你觉得有朋友好不好？为什么？"]},{"A":["毕业以后，你打算怎么认识新的朋友？"],"B":["毕业以后，如果你想交新朋友，你会怎么做？"]}]},{"id":"Specimen-Topic3","year":"Specimen","label":"Topic 3: Food and drink","warmups":["你家谁做饭？","你午餐一般在哪儿吃？"],"mains":[{"A":["你觉得吃早餐重要吗？为什么？"],"B":["你每天吃早餐吗？为什么？"]},{"A":["说说你上一次去饭馆吃饭的经历。比如你吃了什么？你和谁一起去的？"],"B":["你上次在饭馆吃了什么？喝了什么？你跟谁一起去的？"]},{"A":["哪些生活习惯会让你更健康？"],"B":["为了更健康，你打算怎么做？"]}]},{"id":"Specimen-Topic4","year":"Specimen","label":"Topic 4: Travel and transport","warmups":["你每天早上怎么上学？","你最喜欢的交通方式是什么？"],"mains":[{"A":["住在离学校很远的地方有什么坏处？"],"B":["你觉得住在学校附近好吗？为什么？"]},{"A":["说一说你上一次旅行的经历。比如，你去了哪儿？你怎么去的？"],"B":["上个假期你去了哪儿？你是坐公共汽车去的吗？你做了什么？"]},{"A":["你觉得将来有自己的车重要吗？为什么？"],"B":["你将来想买车吗？为什么？"]}]},{"id":"Specimen-Topic5","year":"Specimen","label":"Topic 5: Education and training","warmups":["在学校，你最喜欢的科目是什么？","你每天花多长时间做作业？"],"mains":[{"A":["说说昨天中午休息的时候你在学校做了些什么？"],"B":["昨天中午你在学校做了些什么？"]},{"A":["明年你的生活会有什么变化？比如你打算学什么科目？"],"B":["你明年打算做什么？你想学哪些科目？"]},{"A":["你觉得教育重要吗？"],"B":["你觉得在很好的学校读书重要吗？为什么？"]}]},{"id":"Specimen-Topic6","year":"Specimen","label":"Topic 6: The international world","warmups":["你会说什么外语？","你从什么时候开始学习中文的？"],"mains":[{"A":["说说你上一次用外语的经历。比如，你当时在哪儿？你跟谁说外语了？"],"B":["你上一次说外语是什么时候？你在哪儿？跟谁说的？"]},{"A":["你将来打算学习别的外语吗？为什么？"],"B":["你要学习别的外语吗？为什么？"]},{"A":["你觉得会说外语对找工作有帮助吗？为什么？"],"B":["你觉得会说外语能帮你找到更好的工作吗？为什么？"]}]},{"id":"Specimen-Topic7","year":"Specimen","label":"Topic 7: Communication and technology","warmups":["你每天用什么电子设备？","你每天上网几个小时？"],"mains":[{"A":["这个周末，你计划在网上做些什么？"],"B":["这个周末，你会上网做些什么？"]},{"A":["社交网站有什么好处或者坏处？"],"B":["你觉得社交网站好不好？为什么？"]},{"A":["说说你上一次用手机的经历。"],"B":null}]},{"id":"2022-Topic1","year":"2022","label":"Topic 1: Leisure Time","warmups":["你喜欢做哪些运动？","你常常跟谁一起做运动？"],"mains":[{"A":["说说你上次野餐的经历。","你觉得怎么样？"],"B":["你上次在哪儿野餐？吃了什么？喝了什么？","你觉得怎么样？"]},{"A":["你觉得有不同的爱好重要吗？","为什么？"],"B":["有爱好好不好？","为什么？"]},{"A":["下个周末，你会帮忙做哪些家务？"],"B":["下个周末，你会帮家人做什么？"]}]},{"id":"2022-Topic2","year":"2022","label":"Topic 2: Food & Drink","warmups":["你晚饭一般吃什么？","睡觉以前，你喜欢喝什么？"],"mains":[{"A":["你觉得我们应该吃肉吗？","为什么？"],"B":["你吃肉吗？","为什么？"]},{"A":["谈谈你小时候的生活习惯。"],"B":["小的时候，你喜欢吃什么？做什么运动？","你觉得健康吗？"]},{"A":["将来你会自己在家里做饭吗？","为什么？"],"B":["你以后会给家人做饭吗？","为什么？"]}]},{"id":"2022-Topic3","year":"2022","label":"Topic 3: Self, family & friends","warmups":["你最好的朋友长什么样？","你们是怎么认识的？"],"mains":[{"A":["说说你最近跟朋友过的一天。","你觉得怎么样？"],"B":["你昨天跟朋友一起做了什么？","你觉得怎么样？"]},{"A":["你觉得家人比朋友更重要吗？","为什么？"],"B":["你觉得家人重要吗？","为什么？"]},{"A":["如果有机会，你想跟朋友一起住吗？","为什么？"],"B":["上大学的时候，你想跟朋友一起住吗？","为什么？"]}]},{"id":"2022-Topic4","year":"2022","label":"Topic 4: Shopping","warmups":["你一般跟谁一起买东西？","你喜欢去什么样的商店？"],"mains":[{"A":["说说你上次去超市买菜的经历。","你觉得怎么样？"],"B":["你上次去超市买了什么吃的？花了多少钱？","你觉得怎么样？"]},{"A":["你觉得上网购物有什么好处？","有什么坏处？"],"B":["你觉得上网买东西好不好？","为什么？"]},{"A":["如果你有很多钱，你想怎么花？","为什么？"],"B":["如果你有很多钱，你会买些什么？","为什么？"]}]},{"id":"2022-Topic5","year":"2022","label":"Topic 5: The international world","warmups":["你是从哪个国家来的？","那里的气候怎么样？"],"mains":[{"A":["今年的新年，你是怎么庆祝的？","你觉得怎么样？"],"B":["今年的新年，你是怎么过的？","和谁一起过的？","你觉得怎么样？"]},{"A":["你觉得参观名胜古迹重要吗？","为什么？"],"B":["看有名的景点重要吗？","为什么？"]},{"A":["如果将来有机会，你想去国外工作吗？","为什么？"],"B":["你以后想在外国工作吗？","为什么？"]}]},{"id":"2022-Topic6","year":"2022","label":"Topic 6: Education / work","warmups":["你的学校有多少学生？","学校有哪些设施？"],"mains":[{"A":["说说你在学校是怎么过的。"],"B":["昨天你在学校上了什么课？","做了什么活动？"]},{"A":["你觉得中学生在假期打工有什么好处？有什么坏处？"],"B":["你觉得中学生打工好不好？","为什么？"]},{"A":["你将来打算做什么样的工作？","为什么？"],"B":["你以后想做什么工作？","为什么？"]}]},{"id":"2022-Topic7","year":"2022","label":"Topic 7: Living environment","warmups":["你住在哪里？","在那里有什么公共设施？"],"mains":[{"A":["你住的地方有哪些环境问题？","你觉得怎么样？"],"B":["你家附近有什么环境问题？","有水污染吗？"]},{"A":["为了让环境更好，我们应该怎么做？"],"B":["我们可以做些什么是让环境更好？"]},{"A":["说说你上一次去海边的经历。","你觉得怎么样？"],"B":["你上一次去海边做了什么？","你是怎么去的？","你觉得怎么样？"]}]},{"id":"2023-Topic1","year":"2023","label":"Topic 1: Transport","warmups":["你的父母怎么上班？","你平时喜欢走路还是坐车？"],"mains":[{"A":["你觉得每天走路有什么好处？","有什么坏处？"],"B":["走路好还是坐汽车好？为什么？"]},{"A":["请说说你上一次坐火车的经历。"],"B":["你上次坐火车去了哪里？","为什么？"]},{"A":["将来你打算学开车吗？","为什么？"],"B":["你以后要学开车吗？","为什么？"]}]},{"id":"2023-Topic2","year":"2023","label":"Topic 2: Family","warmups":["你家有几口人？","谁的性格最好？"],"mains":[{"A":["说说你跟家人做过的一个有趣的活动。"],"B":["你最近跟家人一起做了什么？","你觉得怎么样？"]},{"A":["你觉得有兄弟姐妹有什么好处？","有什么坏处？"],"B":["有哥哥姐姐好不好？","为什么？"]},{"A":["将来你打算要孩子吗？","为什么？"],"B":["你以后想要孩子吗？","为什么？"]}]},{"id":"2023-Topic3","year":"2023","label":"Topic 3: Leisure Time","warmups":["你喜欢看什么样的书？","你每天看书看多长时间？"],"mains":[{"A":["你觉得在网上看书好吗？","为什么？"],"B":["你喜欢在电脑上看书吗？","为什么？"]},{"A":["说说你小时候最喜欢的电影。","为什么喜欢？"],"B":["你小时候喜欢看什么电影？","为什么？"]},{"A":["你将来打算试试什么新的活动？"],"B":["明年你会做什么新的活动？"]}]},{"id":"2023-Topic4","year":"2023","label":"Topic 4: Technology","warmups":["你喜欢在哪里玩电脑？","你昨天用电脑用了多长时间？"],"mains":[{"A":["说说你这个周末打算用电脑做些什么？"],"B":["你下个星期会用电脑做什么？"]},{"A":["你觉得中学生在学校用手机有什么好处？","有什么坏处？"],"B":["中学生在学校用手机好不好？","为什么？"]},{"A":["你买东西的时候喜欢用手机付钱吗？","为什么？"],"B":["你喜欢用手机买东西吗？","为什么？"]}]},{"id":"2023-Topic5","year":"2023","label":"Topic 5: Education","warmups":["你最喜欢的课程是什么？","那个课程的老师怎么样？"],"mains":[{"A":["中学毕业后，你打算上大学吗？","为什么？"],"B":["你以后想上大学吗？","为什么？"]},{"A":["你觉得星期六上学有什么好处？","有什么坏处？"],"B":["你觉得星期六上学好不好？","为什么？"]},{"A":["说说你参加过的一个学校交换活动。","你觉得怎么样？"],"B":["你在哪里做过交换学生？","你觉得怎么样？"]}]},{"id":"2023-Topic6","year":"2023","label":"Topic 6: The international world","warmups":["你在家说什么语言？","是谁教你中文的？"],"mains":[{"A":["说说你怎么样学习外语？"],"B":["你怎么练习中文？"]},{"A":["如果你明年去中国，你会参观什么名胜古迹？","会买什么纪念品？"],"B":["如果你明年去中国，你会去什么地方？","你会买什么？"]},{"A":["你觉得旅游有什么好处或者坏处？"],"B":["你觉得旅游好不好？","为什么？"]}]},{"id":"2023-Topic7","year":"2023","label":"Topic 7: The world of work","warmups":["你父母做什么工作？","他们在哪儿工作？"],"mains":[{"A":["你觉得在家里工作好还是在办公室工作好？","为什么？"],"B":["在家里工作好不好？","为什么？"]},{"A":["以前做过什么义工？"],"B":["你在哪里做过义工？","做了什么？"]},{"A":["你将来想跟什么样的人一起工作？","为什么？"],"B":["你以后想跟谁一起工作？","为什么？"]}]},{"id":"2024-Topic1","year":"2024","label":"Topic 1: 饮食","warmups":["你每天吃几种蔬菜？","你最喜欢吃什么蔬菜？"],"mains":[{"A":["你觉得吃素食有什么好处？","有什么坏处？"],"B":["你觉得吃豆腐和青菜好不好？","为什么？"]},{"A":["你将来想学做什么样的中国菜？","为什么？"],"B":["你想学做烤鸭还是炒鸡蛋？","为什么？"]},{"A":["为了身体健康，你去年参加了哪些活动？","在哪儿做的？"],"B":["为了更健康，你去年做了什么？","在哪里做的？"]}]},{"id":"2024-Topic2","year":"2024","label":"Topic 2: 家人和朋友","warmups":["你最喜欢的人是谁？","他/她多大？"],"mains":[{"A":["说说他/她长什么样。","说说他/她的性格。"],"B":["他/她高不高？","你觉得他/她这个人怎么样？"]},{"A":["你和家人去年做了什么有趣的事？","在哪儿做的？"],"B":["去年你和家人去了什么地方？","你们做了什么？"]},{"A":["将来你打算住在哪个国家？","为什么？"],"B":["你以后想住在中国还是英国？","为什么？"]}]},{"id":"2024-Topic3","year":"2024","label":"Topic 3: 你的家","warmups":["你有几个房间？","你家谁买菜？"],"mains":[{"A":["你觉得家人每天在一起吃晚饭重要吗？","为什么？"],"B":["家人应该每天在一起吃晚饭吗？","为什么？"]},{"A":["说说你将来想住在什么样的房子。","想要什么家具？"],"B":["以后你要住多大的房子？","里面要有什么？"]},{"A":["说说你昨天是怎么过的。","你觉得怎么样？"],"B":["你昨天做了什么？","你觉得怎么样？"]}]},{"id":"2024-Topic4","year":"2024","label":"Topic 4: 教育","warmups":["你怎么去学校？","你会带什么文具上学？"],"mains":[{"A":["介绍一下你们学校的课外活动。"],"B":["放学后，你们学校有什么活动？","你觉得怎么样？"]},{"A":["上小学的时候，哪个老师教你数学？","他/她教得怎么样？"],"B":["在小学你的数学老师是谁？","他/她的课怎么样？"]},{"A":["将来工作以后，你还想继续上学吗？","为什么？"],"B":["将来，你会一边工作一边上学吗？","为什么？"]}]},{"id":"2024-Topic5","year":"2024","label":"Topic 5: 旅行","warmups":["你最喜欢几月去旅行？","你一般跟谁一起去旅行？"],"mains":[{"A":["你上次旅行参观了哪个名胜古迹？","你在那儿做了什么？"],"B":["你去年去了哪个旅游景点？","你做了什么？"]},{"A":["你觉得学习外国的文化重要吗？","为什么？"],"B":["你想学习哪个国家的文化？","为什么？"]},{"A":["你下次度假打算住在酒店还是朋友家？","为什么？"],"B":["你今年夏天出去玩儿想住在朋友家吗？","为什么？"]}]},{"id":"2024-Topic6","year":"2024","label":"Topic 6: 工作","warmups":["你的父母每天几点上班？","他们怎么去上班？"],"mains":[{"A":["你觉得世界上最好的工作是什么？","为什么？"],"B":["你最想做什么工作？","为什么？"]},{"A":["说一说你学过的最有用的科目。"],"B":["你去年学了哪些科目？","哪个最有用？","为什么？"]},{"A":["你将来想工作到多大年纪？","退休以后，你打算做什么？"],"B":["你将来想过工作多少年？","不工作以后，你要做什么？"]}]},{"id":"2024-Topic7","year":"2024","label":"Topic 7: 生活环境","warmups":["今天的天气怎么样？","你的国家有几个季节？"],"mains":[{"A":["说说你上一次去市中心的经历。","你觉得怎么样？"],"B":["你最近去了哪个城市？","你做了什么？","跟谁一起去的？"]},{"A":["如果将来有机会，你想住在农村吗？","为什么？"],"B":["以后你想住在农村吗？","为什么？"]},{"A":["我们可以怎样解决城市里的环境问题？"],"B":null}]},{"id":"2025-Topic1","year":"2025","label":"Topic 1: 日常生活","warmups":["你早上几点起床？","你在哪儿吃早饭？"],"mains":[{"A":["说说上个星期五你放学回家后做了些什么。"],"B":["上个星期五，你在家做了什么？"]},{"A":["你觉得看电视有什么好处？","有什么坏处？"],"B":["你觉得看电视好不好？","为什么？"]},{"A":["你将来买房子的时候，有自己的花园很重要吗？","为什么？"],"B":["你将来想有自己的花园吗？","为什么？"]}]},{"id":"2025-Topic2","year":"2025","label":"Topic 2: 家庭生活","warmups":["你家有谁？","你家在哪里？"],"mains":[{"A":["如果有机会，你会养宠物吗？为什么？"],"B":null},{"A":["你觉得父母给孩子零花钱有什么好处？有什么坏处？"],"B":["妈妈爸爸每个星期给你钱买东西好不好？为什么？"]},{"A":["你和家人上次出门时用了什么交通方式？你们去了哪儿？"],"B":["你昨天坐了公共汽车还是火车出去玩儿？你去了哪儿？"]}]},{"id":"2025-Topic3","year":"2025","label":"Topic 3: 健康生活","warmups":["你最喜欢喝什么饮料？","你一般什么时候喝(饮料)？"],"mains":[{"A":["为了身体更健康，你会多吃哪些食物？"],"B":["你会多吃什么食物让身体更好？"]},{"A":["你上小学的时候做过哪些运动？你觉得怎么样？"],"B":["你在小学喜欢做什么活动？你觉得怎么样？"]},{"A":["你觉得现在的中学生睡觉睡得够不够？为什么？"],"B":["你每天睡几个小时？你觉得怎么样？"]}]},{"id":"2025-Topic4","year":"2025","label":"Topic 4: 居住环境","warmups":["你一般去哪里买食物？","去那里要多长时间？"],"mains":[{"A":["你觉得商店应该给顾客塑料袋吗？为什么？"],"B":["买东西的时候，你常常用自己的袋子吗？为什么？"]},{"A":["说说你在学校做过什么对环境好的事情。"],"B":["上个星期，你做了什么让学校环境更好？"]},{"A":["如果可能，你将来想住在海边吗？为什么？"],"B":["你以后想住在海边吗？为什么？"]}]},{"id":"2025-Topic5","year":"2025","label":"Topic 5: 科技","warmups":["你喜欢发短信还是电子邮件？","你每天发多少个（短信/电子邮件）？"],"mains":[{"A":["说说你上个星期用了什么样的网站？"],"B":["你昨天上网做了什么？你觉得怎么样？"]},{"A":["你觉得中学生每天上网多长时间比较合适？为什么？"],"B":["你觉得中学生上网的时间太长吗？为什么？"]},{"A":["将来你打算上网学习哪些新的知识？为什么？"],"B":["你将来会上网学什么？为什么？"]}]},{"id":"2025-Topic6","year":"2025","label":"Topic 6: 国家和节日","warmups":["你是在哪个国家出生的？","你在那里生活了多久？"],"mains":[{"A":["我将来去[国家]的时候，应该参观哪些地方？"],"B":["在那里，我应该去什么地方玩儿？"]},{"A":["说说一个中国的传统节日。"],"B":["春节的时候，中国人吃些什么？","做些什么？"]},{"A":["你觉得过节的时候，跟家人在一起重要吗？","为什么？"],"B":["你喜欢跟家人过新年吗？","为什么？"]}]},{"id":"2025-Topic7","year":"2025","label":"Topic 7: 教育","warmups":["你每天有几节课？","你们的校长是男的还是女的？"],"mains":[{"A":["说说你去年学习汉语的经历。"],"B":["你去年中文学得怎么样？你觉得什么最有意思？"]},{"A":["学校开家长会有什么好处？有什么坏处？"],"B":["学校有家长会好不好？为什么？"]},{"A":["你暑假打算参加夏令营吗？为什么？"],"B":["你假期想参加学校的活动吗？为什么？"]}]},{"id":"2026-Topic1","year":"2026","label":"Topic 1: Leisure","warmups":["你喜欢听什么样的音乐？","你每天听多长时间的音乐？"],"mains":[{"A":["说说你上次去听音乐会的经历。"],"B":["你最近听音乐会是什么时候？","你跟谁一起去的？","你觉得怎么样？"]},{"A":["你觉得哪些爱好对我们好？","哪些爱好对我们不好？"],"B":["什么爱好对身体好？","什么爱好对身体不好？"]},{"A":["你暑假打算跟家人还是朋友出去玩儿？","为什么？"],"B":["你今年夏天会跟朋友出去玩儿吗？","为什么？"]}]},{"id":"2026-Topic2","year":"2026","label":"Topic 2: Clothes","warmups":["你今天穿什么颜色衣服？","是谁给你买的？"],"mains":[{"A":["你觉得穿校服上学好吗？","为什么？"],"B":["在学校，你喜欢穿校服吗？","为什么？"]},{"A":["挣钱以后，你打算去什么样的地方买衣服？","为什么？"],"B":["工作以后，你会上网买衣服吗？","为什么？"]},{"A":["你一般在家里做什么家务？"],"B":["在家里，你帮家人洗衣服还是打扫房间？"]}]},{"id":"2026-Topic3","year":"2026","label":"Topic 3: Transport","warmups":["你家有几口人？","在你家，谁会开车？"],"mains":[{"A":["说说你最近一次坐汽车的经历。"],"B":["你上次坐汽车是什么时候？","在车上做了什么？"]},{"A":["你觉得骑自行车有什么好处？","有什么坏处？"],"B":["骑自行车好不好？","为什么？"]},{"A":["下次去国外旅行，你打算坐火车还是飞机？","为什么？"],"B":["明年，你会坐火车还是飞机去旅行？","为什么？"]}]},{"id":"2026-Topic4","year":"2026","label":"Topic 4: Festivals and Celebrations","warmups":["你的生日是几月几日？","你一般在哪里开生日派对？"],"mains":[{"A":["你上一个生日是怎么过的？","你觉得怎么样？"],"B":["你去年过生日做了什么？","你觉得怎么样？"]},{"A":["你的好朋友快过生日了，你会送什么礼物？","为什么？"],"B":["你的朋友星期天过生日，你会送他/她什么？","为什么？"]},{"A":["你一般庆祝哪些节日？"],"B":["你过新年吗？","你一般在哪儿过新年？"]}]},{"id":"2026-Topic5","year":"2026","label":"Topic 5: Built Environment","warmups":["你住在哪儿？","那里的天气怎么样？"],"mains":[{"A":["说说你为什么喜欢或者不喜欢去图书馆。"],"B":["你喜欢去图书馆吗？","为什么？"]},{"A":["说说你最近去公园的经历。"],"B":["你上次去公园做了什么？","跟谁一起去的？"]},{"A":["你将来想住在城市吗？","为什么？"],"B":["你以后想住在北京吗？","为什么？"]}]},{"id":"2026-Topic6","year":"2026","label":"Topic 6: School","warmups":["你的学校在哪儿？","你们早上几点开始上课？"],"mains":[{"A":["你认为你们的校园怎么样？","为什么？"],"B":["你觉得你们学校漂亮吗？","餐厅在哪儿？"]},{"A":["说说你最近在学校参加的一个有趣的活动。"],"B":["去年你在学校做了什么好玩的活动？"]},{"A":["中学毕业以后，你打算上大学还是找工作？","为什么？"],"B":["你想上大学吗？","为什么？"]}]},{"id":"2026-Topic7","year":"2026","label":"Topic 7: International World","warmups":["你会说什么语言？","你学中文多久了？"],"mains":[{"A":["你觉得学中文有用吗？","为什么？"],"B":["你为什么学中文？"]},{"A":["你对哪个国家感兴趣？","为什么？"],"B":["你最喜欢哪个国家？","为什么？"]},{"A":["你下次旅游想住什么样的酒店？"],"B":["如果你明年去旅行，你会住大的酒店还是小的酒店？"]}]}],"gloss":{"在学校你一般穿什么衣服？":{"py":"zài xué xiào nǐ yì bān chuān shén me yī fú?","en":"What do you usually wear at school?"},"请说说你最喜欢的一件衣服":{"py":"qǐng shuō shuō nǐ zuì xǐ huān de yī jiàn yī fú","en":"Tell me about your favourite piece of clothing."},"说说你上次买衣服的经历。比如，你买了什么？在哪儿买的？":{"py":"shuō shuō nǐ shàng cì mǎi yī fú de jīng lì. bǐ rú, nǐ mǎi le shén me? zài nǎ ér mǎi de?","en":"Tell me about the last time you bought clothes. For example, what did you buy? Where did you buy it?"},"你最近买了什么衣服？你是在哪儿买的？":{"py":"nǐ zuì jìn mǎi le shén me yī fú? nǐ shì zài nǎ ér mǎi de?","en":"What clothes did you buy recently? Where did you buy them?"},"长大以后买时尚的衣服对你重要吗？":{"py":"zhǎng dà yǐ hòu mǎi shí shàng de yī fú duì nǐ zhòng yào ma?","en":"When you grow up, will buying fashionable clothes be important to you?"},"长大以后，你会买时尚的衣服吗？为什么？":{"py":"zhǎng dà yǐ hòu, nǐ huì mǎi shí shàng de yī fú ma? wèi shén me?","en":"When you grow up, will you buy fashionable clothes? Why?"},"你觉得穿校服有什么好处或者坏处？":{"py":"nǐ jué de chuān xiào fú yǒu shén me hǎo chù huò zhě huài chù?","en":"What are the advantages or disadvantages of wearing a school uniform?"},"你喜不喜欢穿校服？为什么？":{"py":"nǐ xǐ bù xǐ huān chuān xiào fú? wèi shén me?","en":"Do you like wearing a school uniform? Why?"},"请说一说你的家人。":{"py":"qǐng shuō yī shuō nǐ de jiā rén.","en":"Please tell me about your family."},"你晚上一般跟家人做些什么？":{"py":"nǐ wǎn shàng yì bān gēn jiā rén zuò xiē shén me?","en":"What do you usually do with your family in the evening?"},"请说一说你最近跟家人或者朋友做了什么？":{"py":"qǐng shuō yī shuō nǐ zuì jìn gēn jiā rén huò zhě péng yǒu zuò le shén me?","en":"Please tell me what you did recently with your family or friends."},"你上个周末跟家人或者朋友一起做了什么？":{"py":"nǐ shàng gè zhōu mò gēn jiā rén huò zhě péng yǒu yì qǐ zuò le shén me?","en":"What did you do with your family or friends last weekend?"},"你觉得好朋友重要吗？为什么？":{"py":"nǐ jué de hǎo péng yǒu zhòng yào ma? wèi shén me?","en":"Do you think good friends are important? Why?"},"你觉得有朋友好不好？为什么？":{"py":"nǐ jué de yǒu péng yǒu hǎo bù hǎo? wèi shén me?","en":"Do you think it is good to have friends? Why?"},"毕业以后，你打算怎么认识新的朋友？":{"py":"bì yè yǐ hòu, nǐ dǎ suàn zěn me rèn shí xīn de péng yǒu?","en":"After you graduate, how do you plan to meet new friends?"},"毕业以后，如果你想交新朋友，你会怎么做？":{"py":"bì yè yǐ hòu, rú guǒ nǐ xiǎng jiāo xīn péng yǒu, nǐ huì zěn me zuò?","en":"After you graduate, if you want to make new friends, what will you do?"},"你家谁做饭？":{"py":"nǐ jiā shuí zuò fàn?","en":"Who cooks at your home?"},"你午餐一般在哪儿吃？":{"py":"nǐ wǔ cān yì bān zài nǎ ér chī?","en":"Where do you usually have lunch?"},"你觉得吃早餐重要吗？为什么？":{"py":"nǐ jué de chī zǎo cān zhòng yào ma? wèi shén me?","en":"Do you think eating breakfast is important? Why?"},"你每天吃早餐吗？为什么？":{"py":"nǐ měi tiān chī zǎo cān ma? wèi shén me?","en":"Do you eat breakfast every day? Why?"},"说说你上一次去饭馆吃饭的经历。比如你吃了什么？你和谁一起去的？":{"py":"shuō shuō nǐ shàng yī cì qù fàn guǎn chī fàn de jīng lì. bǐ rú nǐ chī le shén me? nǐ hé shuí yì qǐ qù de?","en":"Tell me about the last time you ate at a restaurant. For example, what did you eat? Who did you go with?"},"你上次在饭馆吃了什么？喝了什么？你跟谁一起去的？":{"py":"nǐ shàng cì zài fàn guǎn chī le shén me? hē le shén me? nǐ gēn shuí yì qǐ qù de?","en":"What did you eat and drink at the restaurant last time? Who did you go with?"},"哪些生活习惯会让你更健康？":{"py":"nǎ xiē shēng huó xí guàn huì ràng nǐ gèng jiàn kāng?","en":"Which life habits will make you healthier?"},"为了更健康，你打算怎么做？":{"py":"wèi le gèng jiàn kāng, nǐ dǎ suàn zěn me zuò?","en":"What do you plan to do to be healthier?"},"你每天早上怎么上学？":{"py":"nǐ měi tiān zǎo shàng zěn me shàng xué?","en":"How do you go to school every morning?"},"你最喜欢的交通方式是什么？":{"py":"nǐ zuì xǐ huān de jiāo tōng fāng shì shì shén me?","en":"What is your favourite way to travel?"},"住在离学校很远的地方有什么坏处？":{"py":"zhù zài lí xué xiào hěn yuǎn de dì fāng yǒu shén me huài chù?","en":"What are the disadvantages of living far from school?"},"你觉得住在学校附近好吗？为什么？":{"py":"nǐ jué de zhù zài xué xiào fù jìn hǎo ma? wèi shén me?","en":"Do you think it is good to live near school? Why?"},"说一说你上一次旅行的经历。比如，你去了哪儿？你怎么去的？":{"py":"shuō yī shuō nǐ shàng yī cì lǚ xíng de jīng lì. bǐ rú, nǐ qù le nǎ ér? nǐ zěn me qù de?","en":"Tell me about your last trip. For example, where did you go? How did you get there?"},"上个假期你去了哪儿？你是坐公共汽车去的吗？你做了什么？":{"py":"shàng gè jià qī nǐ qù le nǎ ér? nǐ shì zuò gōng gòng qì chē qù de ma? nǐ zuò le shén me?","en":"Where did you go in the last holiday? Did you go by bus? What did you do?"},"你觉得将来有自己的车重要吗？为什么？":{"py":"nǐ jué de jiāng lái yǒu zì jǐ de chē zhòng yào ma? wèi shén me?","en":"Do you think having your own car in the future is important? Why?"},"你将来想买车吗？为什么？":{"py":"nǐ jiāng lái xiǎng mǎi chē ma? wèi shén me?","en":"Do you want to buy a car in the future? Why?"},"在学校，你最喜欢的科目是什么？":{"py":"zài xué xiào, nǐ zuì xǐ huān de kē mù shì shén me?","en":"At school, what is your favourite subject?"},"你每天花多长时间做作业？":{"py":"nǐ měi tiān huā duō zhǎng shí jiān zuò zuò yè?","en":"How long do you spend on homework every day?"},"说说昨天中午休息的时候你在学校做了些什么？":{"py":"shuō shuō zuó tiān zhōng wǔ xiū xī de shí hòu nǐ zài xué xiào zuò le xiē shén me?","en":"Tell me what you did at school during yesterday's lunch break."},"昨天中午你在学校做了些什么？":{"py":"zuó tiān zhōng wǔ nǐ zài xué xiào zuò le xiē shén me?","en":"What did you do at school yesterday at lunchtime?"},"明年你的生活会有什么变化？比如你打算学什么科目？":{"py":"míng nián nǐ de shēng huó huì yǒu shén me biàn huà? bǐ rú nǐ dǎ suàn xué shén me kē mù?","en":"What changes will there be in your life next year? For example, what subjects do you plan to study?"},"你明年打算做什么？你想学哪些科目？":{"py":"nǐ míng nián dǎ suàn zuò shén me? nǐ xiǎng xué nǎ xiē kē mù?","en":"What do you plan to do next year? Which subjects do you want to study?"},"你觉得教育重要吗？":{"py":"nǐ jué de jiào yù zhòng yào ma?","en":"Do you think education is important?"},"你觉得在很好的学校读书重要吗？为什么？":{"py":"nǐ jué de zài hěn hǎo de xué xiào dú shū zhòng yào ma? wèi shén me?","en":"Do you think it is important to study at a very good school? Why?"},"你会说什么外语？":{"py":"nǐ huì shuō shén me wài yǔ?","en":"What foreign languages can you speak?"},"你从什么时候开始学习中文的？":{"py":"nǐ cóng shén me shí hòu kāi shǐ xué xí zhōng wén de?","en":"Since when have you been learning Chinese?"},"说说你上一次用外语的经历。比如，你当时在哪儿？你跟谁说外语了？":{"py":"shuō shuō nǐ shàng yī cì yòng wài yǔ de jīng lì. bǐ rú, nǐ dāng shí zài nǎ ér? nǐ gēn shuí shuō wài yǔ le?","en":"Tell me about the last time you used a foreign language. For example, where were you? Who did you speak it with?"},"你上一次说外语是什么时候？你在哪儿？跟谁说的？":{"py":"nǐ shàng yī cì shuō wài yǔ shì shén me shí hòu? nǐ zài nǎ ér? gēn shuí shuō de?","en":"When was the last time you spoke a foreign language? Where were you? Who did you speak with?"},"你将来打算学习别的外语吗？为什么？":{"py":"nǐ jiāng lái dǎ suàn xué xí bié de wài yǔ ma? wèi shén me?","en":"Do you plan to learn another foreign language in the future? Why?"},"你要学习别的外语吗？为什么？":{"py":"nǐ yào xué xí bié de wài yǔ ma? wèi shén me?","en":"Will you learn another foreign language? Why?"},"你觉得会说外语对找工作有帮助吗？为什么？":{"py":"nǐ jué de huì shuō wài yǔ duì zhǎo gōng zuò yǒu bāng zhù ma? wèi shén me?","en":"Do you think speaking a foreign language helps in finding a job? Why?"},"你觉得会说外语能帮你找到更好的工作吗？为什么？":{"py":"nǐ jué de huì shuō wài yǔ néng bāng nǐ zhǎo dào gèng hǎo de gōng zuò ma? wèi shén me?","en":"Do you think speaking a foreign language can help you find a better job? Why?"},"你每天用什么电子设备？":{"py":"nǐ měi tiān yòng shén me diàn zi shè bèi?","en":"What electronic devices do you use every day?"},"你每天上网几个小时？":{"py":"nǐ měi tiān shàng wǎng jǐ gè xiǎo shí?","en":"How many hours do you spend online every day?"},"这个周末，你计划在网上做些什么？":{"py":"zhè ge zhōu mò, nǐ jì huà zài wǎng shàng zuò xiē shén me?","en":"What do you plan to do online this weekend?"},"这个周末，你会上网做些什么？":{"py":"zhè ge zhōu mò, nǐ huì shàng wǎng zuò xiē shén me?","en":"What will you do online this weekend?"},"社交网站有什么好处或者坏处？":{"py":"shè jiāo wǎng zhàn yǒu shén me hǎo chù huò zhě huài chù?","en":"What are the advantages or disadvantages of social networking sites?"},"你觉得社交网站好不好？为什么？":{"py":"nǐ jué de shè jiāo wǎng zhàn hǎo bù hǎo? wèi shén me?","en":"Do you think social networking sites are good? Why?"},"说说你上一次用手机的经历。":{"py":"shuō shuō nǐ shàng yī cì yòng shǒu jī de jīng lì.","en":"Tell me about the last time you used your mobile phone."},"你喜欢做哪些运动？":{"py":"nǐ xǐ huān zuò nǎ xiē yùn dòng?","en":"What sports do you like?"},"你常常跟谁一起做运动？":{"py":"nǐ cháng cháng gēn shuí yì qǐ zuò yùn dòng?","en":"Who do you often do sports with?"},"说说你上次野餐的经历。":{"py":"shuō shuō nǐ shàng cì yě cān de jīng lì.","en":"Tell me about the last time you had a picnic."},"你觉得怎么样？":{"py":"nǐ jué de zěn me yàng?","en":"How was it? / What did you think?"},"你上次在哪儿野餐？吃了什么？喝了什么？":{"py":"nǐ shàng cì zài nǎ ér yě cān? chī le shén me? hē le shén me?","en":"Where did you have your last picnic? What did you eat and drink?"},"你觉得有不同的爱好重要吗？":{"py":"nǐ jué de yǒu bù tóng de ài hào zhòng yào ma?","en":"Do you think it is important to have different hobbies?"},"为什么？":{"py":"wèi shén me?","en":"Why?"},"有爱好好不好？":{"py":"yǒu ài hào hǎo bù hǎo?","en":"Is it good to have hobbies?"},"下个周末，你会帮忙做哪些家务？":{"py":"xià gè zhōu mò, nǐ huì bāng máng zuò nǎ xiē jiā wù?","en":"Next weekend, what housework will you help with?"},"下个周末，你会帮家人做什么？":{"py":"xià gè zhōu mò, nǐ huì bāng jiā rén zuò shén me?","en":"Next weekend, what will you do to help your family?"},"你晚饭一般吃什么？":{"py":"nǐ wǎn fàn yì bān chī shén me?","en":"What do you usually eat for dinner?"},"睡觉以前，你喜欢喝什么？":{"py":"shuì jiào yǐ qián, nǐ xǐ huān hē shén me?","en":"What do you like to drink before going to bed?"},"你觉得我们应该吃肉吗？":{"py":"nǐ jué de wǒ men yīng gāi chī ròu ma?","en":"Do you think we should eat meat?"},"你吃肉吗？":{"py":"nǐ chī ròu ma?","en":"Do you eat meat?"},"谈谈你小时候的生活习惯。":{"py":"tán tán nǐ xiǎo shí hòu de shēng huó xí guàn.","en":"Tell me about your living habits when you were little."},"小的时候，你喜欢吃什么？做什么运动？":{"py":"xiǎo de shí hòu, nǐ xǐ huān chī shén me? zuò shén me yùn dòng?","en":"When you were little, what did you like to eat? What sports did you do?"},"你觉得健康吗？":{"py":"nǐ jué de jiàn kāng ma?","en":"Do you think that was healthy?"},"将来你会自己在家里做饭吗？":{"py":"jiāng lái nǐ huì zì jǐ zài jiā lǐ zuò fàn ma?","en":"In the future, will you cook at home yourself?"},"你以后会给家人做饭吗？":{"py":"nǐ yǐ hòu huì gěi jiā rén zuò fàn ma?","en":"In the future, will you cook for your family?"},"你最好的朋友长什么样？":{"py":"nǐ zuì hǎo de péng yǒu zhǎng shén me yàng?","en":"What does your best friend look like?"},"你们是怎么认识的？":{"py":"nǐ men shì zěn me rèn shí de?","en":"How did you get to know each other?"},"说说你最近跟朋友过的一天。":{"py":"shuō shuō nǐ zuì jìn gēn péng yǒu guò de yī tiān.","en":"Tell me about a day you recently spent with a friend."},"你昨天跟朋友一起做了什么？":{"py":"nǐ zuó tiān gēn péng yǒu yì qǐ zuò le shén me?","en":"What did you do with a friend yesterday?"},"你觉得家人比朋友更重要吗？":{"py":"nǐ jué de jiā rén bǐ péng yǒu gèng zhòng yào ma?","en":"Do you think family is more important than friends?"},"你觉得家人重要吗？":{"py":"nǐ jué de jiā rén zhòng yào ma?","en":"Do you think family is important?"},"如果有机会，你想跟朋友一起住吗？":{"py":"rú guǒ yǒu jī huì, nǐ xiǎng gēn péng yǒu yì qǐ zhù ma?","en":"If you had the chance, would you like to live with friends?"},"上大学的时候，你想跟朋友一起住吗？":{"py":"shàng dà xué de shí hòu, nǐ xiǎng gēn péng yǒu yì qǐ zhù ma?","en":"When you go to university, would you like to live with friends?"},"你一般跟谁一起买东西？":{"py":"nǐ yì bān gēn shuí yì qǐ mǎi dōng xī?","en":"Who do you usually go shopping with?"},"你喜欢去什么样的商店？":{"py":"nǐ xǐ huān qù shén me yàng de shāng diàn?","en":"What kind of shops do you like to go to?"},"说说你上次去超市买菜的经历。":{"py":"shuō shuō nǐ shàng cì qù chāo shì mǎi cài de jīng lì.","en":"Tell me about the last time you went to the supermarket to buy food."},"你上次去超市买了什么吃的？花了多少钱？":{"py":"nǐ shàng cì qù chāo shì mǎi le shén me chī de? huā le duō shǎo qián?","en":"What food did you buy at the supermarket last time? How much did you spend?"},"你觉得上网购物有什么好处？":{"py":"nǐ jué de shàng wǎng gòu wù yǒu shén me hǎo chù?","en":"What are the advantages of shopping online?"},"有什么坏处？":{"py":"yǒu shén me huài chù?","en":"What are the disadvantages?"},"你觉得上网买东西好不好？":{"py":"nǐ jué de shàng wǎng mǎi dōng xī hǎo bù hǎo?","en":"Do you think it is good to buy things online?"},"如果你有很多钱，你想怎么花？":{"py":"rú guǒ nǐ yǒu hěn duō qián, nǐ xiǎng zěn me huā?","en":"If you had a lot of money, how would you like to spend it?"},"如果你有很多钱，你会买些什么？":{"py":"rú guǒ nǐ yǒu hěn duō qián, nǐ huì mǎi xiē shén me?","en":"If you had a lot of money, what would you buy?"},"你是从哪个国家来的？":{"py":"nǐ shì cóng nǎ ge guó jiā lái de?","en":"Which country do you come from?"},"那里的气候怎么样？":{"py":"nà lǐ de qì hòu zěn me yàng?","en":"What is the climate like there?"},"今年的新年，你是怎么庆祝的？":{"py":"jīn nián de xīn nián, nǐ shì zěn me qìng zhù de?","en":"How did you celebrate New Year this year?"},"今年的新年，你是怎么过的？":{"py":"jīn nián de xīn nián, nǐ shì zěn me guò de?","en":"How did you spend New Year this year?"},"和谁一起过的？":{"py":"hé shuí yì qǐ guò de?","en":"Who did you spend it with?"},"你觉得参观名胜古迹重要吗？":{"py":"nǐ jué de cān guān míng shèng gǔ jì zhòng yào ma?","en":"Do you think visiting famous places of interest is important?"},"看有名的景点重要吗？":{"py":"kàn yǒu míng de jǐng diǎn zhòng yào ma?","en":"Is it important to see famous sights?"},"如果将来有机会，你想去国外工作吗？":{"py":"rú guǒ jiāng lái yǒu jī huì, nǐ xiǎng qù guó wài gōng zuò ma?","en":"If you had the chance in the future, would you like to work abroad?"},"你以后想在外国工作吗？":{"py":"nǐ yǐ hòu xiǎng zài wài guó gōng zuò ma?","en":"In the future, would you like to work in a foreign country?"},"你的学校有多少学生？":{"py":"nǐ de xué xiào yǒu duō shǎo xué shēng?","en":"How many students are there in your school?"},"学校有哪些设施？":{"py":"xué xiào yǒu nǎ xiē shè shī?","en":"What facilities does your school have?"},"说说你在学校是怎么过的。":{"py":"shuō shuō nǐ zài xué xiào shì zěn me guò de.","en":"Tell me how you spend your time at school."},"昨天你在学校上了什么课？":{"py":"zuó tiān nǐ zài xué xiào shàng le shén me kè?","en":"What lessons did you have at school yesterday?"},"做了什么活动？":{"py":"zuò le shén me huó dòng?","en":"What activities did you do?"},"你觉得中学生在假期打工有什么好处？有什么坏处？":{"py":"nǐ jué de zhōng xué shēng zài jià qī dǎ gōng yǒu shén me hǎo chù? yǒu shén me huài chù?","en":"What are the advantages and disadvantages of secondary school students doing part-time jobs in the holidays?"},"你觉得中学生打工好不好？":{"py":"nǐ jué de zhōng xué shēng dǎ gōng hǎo bù hǎo?","en":"Do you think it is good for secondary school students to have part-time jobs?"},"你将来打算做什么样的工作？":{"py":"nǐ jiāng lái dǎ suàn zuò shén me yàng de gōng zuò?","en":"What kind of job do you plan to do in the future?"},"你以后想做什么工作？":{"py":"nǐ yǐ hòu xiǎng zuò shén me gōng zuò?","en":"What job do you want to do in the future?"},"你住在哪里？":{"py":"nǐ zhù zài nǎ lǐ?","en":"Where do you live?"},"在那里有什么公共设施？":{"py":"zài nà lǐ yǒu shén me gōng gòng shè shī?","en":"What public facilities are there around there?"},"你住的地方有哪些环境问题？":{"py":"nǐ zhù de dì fāng yǒu nǎ xiē huán jìng wèn tí?","en":"What environmental problems are there where you live?"},"你家附近有什么环境问题？":{"py":"nǐ jiā fù jìn yǒu shén me huán jìng wèn tí?","en":"What environmental problems are there near your home?"},"有水污染吗？":{"py":"yǒu shuǐ wū rǎn ma?","en":"Is there water pollution?"},"为了让环境更好，我们应该怎么做？":{"py":"wèi le ràng huán jìng gèng hǎo, wǒ men yīng gāi zěn me zuò?","en":"What should we do to make the environment better?"},"我们可以做些什么是让环境更好？":{"py":"wǒ men kě yǐ zuò xiē shén me shì ràng huán jìng gèng hǎo?","en":"What can we do to make the environment better?"},"说说你上一次去海边的经历。":{"py":"shuō shuō nǐ shàng yī cì qù hǎi biān de jīng lì.","en":"Tell me about the last time you went to the seaside."},"你上一次去海边做了什么？":{"py":"nǐ shàng yī cì qù hǎi biān zuò le shén me?","en":"What did you do the last time you went to the seaside?"},"你是怎么去的？":{"py":"nǐ shì zěn me qù de?","en":"How did you get there?"},"你的父母怎么上班？":{"py":"nǐ de fù mǔ zěn me shàng bān?","en":"How do your parents get to work?"},"你平时喜欢走路还是坐车？":{"py":"nǐ píng shí xǐ huān zǒu lù hái shì zuò chē?","en":"Do you usually prefer walking or taking a vehicle?"},"你觉得每天走路有什么好处？":{"py":"nǐ jué de měi tiān zǒu lù yǒu shén me hǎo chù?","en":"What are the advantages of walking every day?"},"走路好还是坐汽车好？为什么？":{"py":"zǒu lù hǎo hái shì zuò qì chē hǎo? wèi shén me?","en":"Is it better to walk or to go by car? Why?"},"请说说你上一次坐火车的经历。":{"py":"qǐng shuō shuō nǐ shàng yī cì zuò huǒ chē de jīng lì.","en":"Please tell me about the last time you took a train."},"你上次坐火车去了哪里？":{"py":"nǐ shàng cì zuò huǒ chē qù le nǎ lǐ?","en":"Where did you go the last time you took a train?"},"将来你打算学开车吗？":{"py":"jiāng lái nǐ dǎ suàn xué kāi chē ma?","en":"In the future, do you plan to learn to drive?"},"你以后要学开车吗？":{"py":"nǐ yǐ hòu yào xué kāi chē ma?","en":"In the future, will you learn to drive?"},"你家有几口人？":{"py":"nǐ jiā yǒu jǐ kǒu rén?","en":"How many people are there in your family?"},"谁的性格最好？":{"py":"shéi de xìng gé zuì hǎo?","en":"Whose personality is the best?"},"说说你跟家人做过的一个有趣的活动。":{"py":"shuō shuō nǐ gēn jiā rén zuò guò de yí gè yǒu qù de huó dòng.","en":"Tell me about an interesting activity you have done with your family."},"你最近跟家人一起做了什么？":{"py":"nǐ zuì jìn gēn jiā rén yì qǐ zuò le shén me?","en":"What did you do with your family recently?"},"你觉得有兄弟姐妹有什么好处？":{"py":"nǐ jué de yǒu xiōng dì jiě mèi yǒu shén me hǎo chù?","en":"What are the advantages of having brothers and sisters?"},"有哥哥姐姐好不好？":{"py":"yǒu gē gē jiě jiě hǎo bù hǎo?","en":"Is it good to have an older brother or sister?"},"将来你打算要孩子吗？":{"py":"jiāng lái nǐ dǎ suàn yào hái zi ma?","en":"In the future, do you plan to have children?"},"你以后想要孩子吗？":{"py":"nǐ yǐ hòu xiǎng yào hái zi ma?","en":"In the future, will you want to have children?"},"你喜欢看什么样的书？":{"py":"nǐ xǐ huān kàn shén me yàng de shū?","en":"What kind of books do you like to read?"},"你每天看书看多长时间？":{"py":"nǐ měi tiān kàn shū kàn duō zhǎng shí jiān?","en":"How long do you spend reading every day?"},"你觉得在网上看书好吗？":{"py":"nǐ jué de zài wǎng shàng kàn shū hǎo ma?","en":"Do you think reading online is good?"},"你喜欢在电脑上看书吗？":{"py":"nǐ xǐ huān zài diàn nǎo shàng kàn shū ma?","en":"Do you like reading on a computer?"},"说说你小时候最喜欢的电影。":{"py":"shuō shuō nǐ xiǎo shí hòu zuì xǐ huān de diàn yǐng.","en":"Tell me about your favourite film when you were little."},"为什么喜欢？":{"py":"wèi shén me xǐ huān?","en":"Why did you like it?"},"你小时候喜欢看什么电影？":{"py":"nǐ xiǎo shí hòu xǐ huān kàn shén me diàn yǐng?","en":"What films did you like to watch when you were little?"},"你将来打算试试什么新的活动？":{"py":"nǐ jiāng lái dǎ suàn shì shì shén me xīn de huó dòng?","en":"What new activity do you plan to try in the future?"},"明年你会做什么新的活动？":{"py":"míng nián nǐ huì zuò shén me xīn de huó dòng?","en":"What new activity will you do next year?"},"你喜欢在哪里玩电脑？":{"py":"nǐ xǐ huān zài nǎ lǐ wán diàn nǎo?","en":"Where do you like to use the computer?"},"你昨天用电脑用了多长时间？":{"py":"nǐ zuó tiān yòng diàn nǎo yòng le duō zhǎng shí jiān?","en":"How long did you use the computer yesterday?"},"说说你这个周末打算用电脑做些什么？":{"py":"shuō shuō nǐ zhè ge zhōu mò dǎ suàn yòng diàn nǎo zuò xiē shén me?","en":"What do you plan to do on the computer this weekend?"},"你下个星期会用电脑做什么？":{"py":"nǐ xià gè xīng qī huì yòng diàn nǎo zuò shén me?","en":"What will you do on the computer next week?"},"你觉得中学生在学校用手机有什么好处？":{"py":"nǐ jué de zhōng xué shēng zài xué xiào yòng shǒu jī yǒu shén me hǎo chù?","en":"What are the advantages of secondary school students using mobile phones at school?"},"中学生在学校用手机好不好？":{"py":"zhōng xué shēng zài xué xiào yòng shǒu jī hǎo bù hǎo?","en":"Is it good for secondary school students to use mobile phones at school?"},"你买东西的时候喜欢用手机付钱吗？":{"py":"nǐ mǎi dōng xī de shí hòu xǐ huān yòng shǒu jī fù qián ma?","en":"When you buy things, do you like paying by mobile phone?"},"你喜欢用手机买东西吗？":{"py":"nǐ xǐ huān yòng shǒu jī mǎi dōng xī ma?","en":"Do you like buying things with your mobile phone?"},"你最喜欢的课程是什么？":{"py":"nǐ zuì xǐ huān de kè chéng shì shén me?","en":"What is your favourite course?"},"那个课程的老师怎么样？":{"py":"nà ge kè chéng de lǎo shī zěn me yàng?","en":"What is the teacher of that course like?"},"中学毕业后，你打算上大学吗？":{"py":"zhōng xué bì yè hòu, nǐ dǎ suàn shàng dà xué ma?","en":"After finishing secondary school, do you plan to go to university?"},"你以后想上大学吗？":{"py":"nǐ yǐ hòu xiǎng shàng dà xué ma?","en":"In the future, will you want to go to university?"},"你觉得星期六上学有什么好处？":{"py":"nǐ jué de xīng qī liù shàng xué yǒu shén me hǎo chù?","en":"What are the advantages of going to school on Saturdays?"},"你觉得星期六上学好不好？":{"py":"nǐ jué de xīng qī liù shàng xué hǎo bù hǎo?","en":"Do you think going to school on Saturdays is good?"},"说说你参加过的一个学校交换活动。":{"py":"shuō shuō nǐ cān jiā guò de yí gè xué xiào jiāo huàn huó dòng.","en":"Tell me about a school exchange activity you took part in."},"你在哪里做过交换学生？":{"py":"nǐ zài nǎ lǐ zuò guò jiāo huàn xué shēng?","en":"Where did you go as an exchange student?"},"你在家说什么语言？":{"py":"nǐ zài jiā shuō shén me yǔ yán?","en":"What language do you speak at home?"},"是谁教你中文的？":{"py":"shì shuí jiào nǐ zhōng wén de?","en":"Who taught you Chinese?"},"说说你怎么样学习外语？":{"py":"shuō shuō nǐ zěn me yàng xué xí wài yǔ?","en":"Tell me how you learn foreign languages."},"你怎么练习中文？":{"py":"nǐ zěn me liàn xí zhōng wén?","en":"How do you practise Chinese?"},"如果你明年去中国，你会参观什么名胜古迹？":{"py":"rú guǒ nǐ míng nián qù zhōng guó, nǐ huì cān guān shén me míng shèng gǔ jì?","en":"If you go to China next year, which famous places will you visit?"},"会买什么纪念品？":{"py":"huì mǎi shén me jì niàn pǐn?","en":"What souvenirs will you buy?"},"如果你明年去中国，你会去什么地方？":{"py":"rú guǒ nǐ míng nián qù zhōng guó, nǐ huì qù shén me dì fāng?","en":"If you go to China next year, where will you go?"},"你会买什么？":{"py":"nǐ huì mǎi shén me?","en":"What will you buy?"},"你觉得旅游有什么好处或者坏处？":{"py":"nǐ jué de lǚ yóu yǒu shén me hǎo chù huò zhě huài chù?","en":"What are the advantages or disadvantages of travelling?"},"你觉得旅游好不好？":{"py":"nǐ jué de lǚ yóu hǎo bù hǎo?","en":"Do you think travelling is good?"},"你父母做什么工作？":{"py":"nǐ fù mǔ zuò shén me gōng zuò?","en":"What work do your parents do?"},"他们在哪儿工作？":{"py":"tā men zài nǎ ér gōng zuò?","en":"Where do they work?"},"你觉得在家里工作好还是在办公室工作好？":{"py":"nǐ jué de zài jiā lǐ gōng zuò hǎo hái shì zài bàn gōng shì gōng zuò hǎo?","en":"Do you think it is better to work at home or in an office?"},"在家里工作好不好？":{"py":"zài jiā lǐ gōng zuò hǎo bù hǎo?","en":"Is it good to work at home?"},"以前做过什么义工？":{"py":"yǐ qián zuò guò shén me yì gōng?","en":"What volunteer work have you done before?"},"你在哪里做过义工？":{"py":"nǐ zài nǎ lǐ zuò guò yì gōng?","en":"Where have you done volunteer work?"},"做了什么？":{"py":"zuò le shén me?","en":"What did you do?"},"你将来想跟什么样的人一起工作？":{"py":"nǐ jiāng lái xiǎng gēn shén me yàng de rén yì qǐ gōng zuò?","en":"What kind of people would you like to work with in the future?"},"你以后想跟谁一起工作？":{"py":"nǐ yǐ hòu xiǎng gēn shuí yì qǐ gōng zuò?","en":"Who would you like to work with in the future?"},"你每天吃几种蔬菜？":{"py":"nǐ měi tiān chī jǐ zhǒng shū cài?","en":"How many kinds of vegetables do you eat every day?"},"你最喜欢吃什么蔬菜？":{"py":"nǐ zuì xǐ huān chī shén me shū cài?","en":"What is your favourite vegetable?"},"你觉得吃素食有什么好处？":{"py":"nǐ jué de chī sù shí yǒu shén me hǎo chù?","en":"What are the advantages of being vegetarian?"},"你觉得吃豆腐和青菜好不好？":{"py":"nǐ jué de chī dòu fǔ hé qīng cài hǎo bù hǎo?","en":"Do you think eating tofu and green vegetables is good?"},"你将来想学做什么样的中国菜？":{"py":"nǐ jiāng lái xiǎng xué zuò shén me yàng de zhōng guó cài?","en":"What kind of Chinese food would you like to learn to cook in the future?"},"你想学做烤鸭还是炒鸡蛋？":{"py":"nǐ xiǎng xué zuò kǎo yā hái shì chǎo jī dàn?","en":"Would you like to learn to cook roast duck or fried eggs?"},"为了身体健康，你去年参加了哪些活动？":{"py":"wèi le shēn tǐ jiàn kāng, nǐ qù nián cān jiā le nǎ xiē huó dòng?","en":"For your health, what activities did you take part in last year?"},"在哪儿做的？":{"py":"zài nǎ ér zuò de?","en":"Where did you do them?"},"为了更健康，你去年做了什么？":{"py":"wèi le gèng jiàn kāng, nǐ qù nián zuò le shén me?","en":"To be healthier, what did you do last year?"},"在哪里做的？":{"py":"zài nǎ lǐ zuò de?","en":"Where did you do it?"},"你最喜欢的人是谁？":{"py":"nǐ zuì xǐ huān de rén shì shuí?","en":"Who is your favourite person?"},"他/她多大？":{"py":"tā / tā duō dà?","en":"How old is he/she?"},"说说他/她长什么样。":{"py":"shuō shuō tā / tā zhǎng shén me yàng.","en":"Tell me what he/she looks like."},"说说他/她的性格。":{"py":"shuō shuō tā / tā de xìng gé.","en":"Tell me about his/her personality."},"他/她高不高？":{"py":"tā / tā gāo bù gāo?","en":"Is he/she tall?"},"你觉得他/她这个人怎么样？":{"py":"nǐ jué de tā / tā zhè ge rén zěn me yàng?","en":"What do you think of this person?"},"你和家人去年做了什么有趣的事？":{"py":"nǐ hé jiā rén qù nián zuò le shén me yǒu qù de shì?","en":"What interesting thing did you and your family do last year?"},"去年你和家人去了什么地方？":{"py":"qù nián nǐ hé jiā rén qù le shén me dì fāng?","en":"Where did you and your family go last year?"},"你们做了什么？":{"py":"nǐ men zuò le shén me?","en":"What did you do?"},"将来你打算住在哪个国家？":{"py":"jiāng lái nǐ dǎ suàn zhù zài nǎ ge guó jiā?","en":"Which country do you plan to live in in the future?"},"你以后想住在中国还是英国？":{"py":"nǐ yǐ hòu xiǎng zhù zài zhōng guó hái shì yīng guó?","en":"In the future, would you like to live in China or in Britain?"},"你有几个房间？":{"py":"nǐ yǒu jǐ gè fáng jiān?","en":"How many rooms are there in your home?"},"你家谁买菜？":{"py":"nǐ jiā shuí mǎi cài?","en":"Who buys the groceries at your home?"},"你觉得家人每天在一起吃晚饭重要吗？":{"py":"nǐ jué de jiā rén měi tiān zài yì qǐ chī wǎn fàn zhòng yào ma?","en":"Do you think it is important for the family to have dinner together every day?"},"家人应该每天在一起吃晚饭吗？":{"py":"jiā rén yīng gāi měi tiān zài yì qǐ chī wǎn fàn ma?","en":"Should the family have dinner together every day?"},"说说你将来想住在什么样的房子。":{"py":"shuō shuō nǐ jiāng lái xiǎng zhù zài shén me yàng de fáng zi.","en":"Tell me about the kind of house you would like to live in in the future."},"想要什么家具？":{"py":"xiǎng yào shén me jiā jù?","en":"What furniture would you like?"},"以后你要住多大的房子？":{"py":"yǐ hòu nǐ yào zhù duō dà de fáng zi?","en":"In the future, how big a house would you live in?"},"里面要有什么？":{"py":"lǐ miàn yào yǒu shén me?","en":"What would be in it?"},"说说你昨天是怎么过的。":{"py":"shuō shuō nǐ zuó tiān shì zěn me guò de.","en":"Tell me how you spent yesterday."},"你昨天做了什么？":{"py":"nǐ zuó tiān zuò le shén me?","en":"What did you do yesterday?"},"你怎么去学校？":{"py":"nǐ zěn me qù xué xiào?","en":"How do you go to school?"},"你会带什么文具上学？":{"py":"nǐ huì dài shén me wén jù shàng xué?","en":"What stationery do you take to school?"},"介绍一下你们学校的课外活动。":{"py":"jiè shào yī xià nǐ men xué xiào de kè wài huó dòng.","en":"Tell me about the after-school activities at your school."},"放学后，你们学校有什么活动？":{"py":"fàng xué hòu, nǐ men xué xiào yǒu shén me huó dòng?","en":"After school, what activities are there at your school?"},"上小学的时候，哪个老师教你数学？":{"py":"shàng xiǎo xué de shí hòu, nǎ ge lǎo shī jiào nǐ shù xué?","en":"When you were in primary school, which teacher taught you maths?"},"他/她教得怎么样？":{"py":"tā / tā jiào dé zěn me yàng?","en":"How did he/she teach?"},"在小学你的数学老师是谁？":{"py":"zài xiǎo xué nǐ de shù xué lǎo shī shì shuí?","en":"Who was your maths teacher in primary school?"},"他/她的课怎么样？":{"py":"tā / tā de kè zěn me yàng?","en":"What were his/her lessons like?"},"将来工作以后，你还想继续上学吗？":{"py":"jiāng lái gōng zuò yǐ hòu, nǐ hái xiǎng jì xù shàng xué ma?","en":"After you start work in the future, do you still want to keep studying?"},"将来，你会一边工作一边上学吗？":{"py":"jiāng lái, nǐ huì yī biān gōng zuò yī biān shàng xué ma?","en":"In the future, will you work and study at the same time?"},"你最喜欢几月去旅行？":{"py":"nǐ zuì xǐ huān jǐ yuè qù lǚ xíng?","en":"Which month do you like to travel in most?"},"你一般跟谁一起去旅行？":{"py":"nǐ yì bān gēn shuí yì qǐ qù lǚ xíng?","en":"Who do you usually travel with?"},"你上次旅行参观了哪个名胜古迹？":{"py":"nǐ shàng cì lǚ xíng cān guān le nǎ ge míng shèng gǔ jì?","en":"Which famous place of interest did you visit on your last trip?"},"你在那儿做了什么？":{"py":"nǐ zài nà ér zuò le shén me?","en":"What did you do there?"},"你去年去了哪个旅游景点？":{"py":"nǐ qù nián qù le nǎ ge lǚ yóu jǐng diǎn?","en":"Which tourist attraction did you go to last year?"},"你做了什么？":{"py":"nǐ zuò le shén me?","en":"What did you do?"},"你觉得学习外国的文化重要吗？":{"py":"nǐ jué de xué xí wài guó de wén huà zhòng yào ma?","en":"Do you think it is important to learn about foreign cultures?"},"你想学习哪个国家的文化？":{"py":"nǐ xiǎng xué xí nǎ ge guó jiā de wén huà?","en":"Which country's culture would you like to learn about?"},"你下次度假打算住在酒店还是朋友家？":{"py":"nǐ xià cì dù jià dǎ suàn zhù zài jiǔ diàn hái shì péng yǒu jiā?","en":"For your next holiday, do you plan to stay in a hotel or at a friend's house?"},"你今年夏天出去玩儿想住在朋友家吗？":{"py":"nǐ jīn nián xià tiān chū qù wán ér xiǎng zhù zài péng yǒu jiā ma?","en":"Would you like to stay at a friend's house when you go out this summer?"},"你的父母每天几点上班？":{"py":"nǐ de fù mǔ měi tiān jǐ diǎn shàng bān?","en":"What time do your parents start work every day?"},"他们怎么去上班？":{"py":"tā men zěn me qù shàng bān?","en":"How do they get to work?"},"你觉得世界上最好的工作是什么？":{"py":"nǐ jué de shì jiè shàng zuì hǎo de gōng zuò shì shén me?","en":"What do you think the best job in the world is?"},"你最想做什么工作？":{"py":"nǐ zuì xiǎng zuò shén me gōng zuò?","en":"What job would you most like to do?"},"说一说你学过的最有用的科目。":{"py":"shuō yī shuō nǐ xué guò de zuì yǒu yòng de kē mù.","en":"Tell me about the most useful subject you have studied."},"你去年学了哪些科目？":{"py":"nǐ qù nián xué le nǎ xiē kē mù?","en":"What subjects did you study last year?"},"哪个最有用？":{"py":"nǎ ge zuì yǒu yòng?","en":"Which one is the most useful?"},"你将来想工作到多大年纪？":{"py":"nǐ jiāng lái xiǎng gōng zuò dào duō dà nián jì?","en":"Until what age would you like to work in the future?"},"退休以后，你打算做什么？":{"py":"tuì xiū yǐ hòu, nǐ dǎ suàn zuò shén me?","en":"What do you plan to do after you retire?"},"你将来想过工作多少年？":{"py":"nǐ jiāng lái xiǎng guò gōng zuò duō shǎo nián?","en":"How many years would you like to work in the future?"},"不工作以后，你要做什么？":{"py":"bù gōng zuò yǐ hòu, nǐ yào zuò shén me?","en":"What will you do after you stop working?"},"今天的天气怎么样？":{"py":"jīn tiān de tiān qì zěn me yàng?","en":"How is the weather today?"},"你的国家有几个季节？":{"py":"nǐ de guó jiā yǒu jǐ gè jì jié?","en":"How many seasons are there in your country?"},"说说你上一次去市中心的经历。":{"py":"shuō shuō nǐ shàng yī cì qù shì zhōng xīn de jīng lì.","en":"Tell me about the last time you went to the city centre."},"你最近去了哪个城市？":{"py":"nǐ zuì jìn qù le nǎ ge chéng shì?","en":"Which city did you go to recently?"},"跟谁一起去的？":{"py":"gēn shuí yì qǐ qù de?","en":"Who did you go with?"},"如果将来有机会，你想住在农村吗？":{"py":"rú guǒ jiāng lái yǒu jī huì, nǐ xiǎng zhù zài nóng cūn ma?","en":"If you had the chance in the future, would you like to live in the countryside?"},"以后你想住在农村吗？":{"py":"yǐ hòu nǐ xiǎng zhù zài nóng cūn ma?","en":"In the future, would you like to live in the countryside?"},"我们可以怎样解决城市里的环境问题？":{"py":"wǒ men kě yǐ zěn yàng jiě jué chéng shì lǐ de huán jìng wèn tí?","en":"How can we solve the environmental problems in cities?"},"你早上几点起床？":{"py":"nǐ zǎo shàng jǐ diǎn qǐ chuáng?","en":"What time do you get up in the morning?"},"你在哪儿吃早饭？":{"py":"nǐ zài nǎ ér chī zǎo fàn?","en":"Where do you eat breakfast?"},"说说上个星期五你放学回家后做了些什么。":{"py":"shuō shuō shàng gè xīng qī wǔ nǐ fàng xué huí jiā hòu zuò le xiē shén me.","en":"Tell me what you did after school last Friday when you got home."},"上个星期五，你在家做了什么？":{"py":"shàng gè xīng qī wǔ, nǐ zài jiā zuò le shén me?","en":"What did you do at home last Friday?"},"你觉得看电视有什么好处？":{"py":"nǐ jué de kàn diàn shì yǒu shén me hǎo chù?","en":"What are the advantages of watching television?"},"你觉得看电视好不好？":{"py":"nǐ jué de kàn diàn shì hǎo bù hǎo?","en":"Do you think watching television is good?"},"你将来买房子的时候，有自己的花园很重要吗？":{"py":"nǐ jiāng lái mǎi fáng zi de shí hòu, yǒu zì jǐ de huā yuán hěn zhòng yào ma?","en":"When you buy a house in the future, is it important to have your own garden?"},"你将来想有自己的花园吗？":{"py":"nǐ jiāng lái xiǎng yǒu zì jǐ de huā yuán ma?","en":"In the future, would you like to have your own garden?"},"你家有谁？":{"py":"nǐ jiā yǒu shuí?","en":"Who is in your family?"},"你家在哪里？":{"py":"nǐ jiā zài nǎ lǐ?","en":"Where is your home?"},"如果有机会，你会养宠物吗？为什么？":{"py":"rú guǒ yǒu jī huì, nǐ huì yǎng chǒng wù ma? wèi shén me?","en":"If you had the chance, would you keep a pet? Why?"},"你觉得父母给孩子零花钱有什么好处？有什么坏处？":{"py":"nǐ jué de fù mǔ gěi hái zi líng huā qián yǒu shén me hǎo chù? yǒu shén me huài chù?","en":"What are the advantages of parents giving children pocket money? What are the disadvantages?"},"妈妈爸爸每个星期给你钱买东西好不好？为什么？":{"py":"mā mā bà bà měi gè xīng qī gěi nǐ qián mǎi dōng xī hǎo bù hǎo? wèi shén me?","en":"Is it good that your mum and dad give you money every week to buy things? Why?"},"你和家人上次出门时用了什么交通方式？你们去了哪儿？":{"py":"nǐ hé jiā rén shàng cì chū mén shí yòng le shén me jiāo tōng fāng shì? nǐ men qù le nǎ ér?","en":"What transport did you and your family use the last time you went out? Where did you go?"},"你昨天坐了公共汽车还是火车出去玩儿？你去了哪儿？":{"py":"nǐ zuó tiān zuò le gōng gòng qì chē hái shì huǒ chē chū qù wán ér? nǐ qù le nǎ ér?","en":"Did you go out yesterday by bus or by train? Where did you go?"},"你最喜欢喝什么饮料？":{"py":"nǐ zuì xǐ huān hē shén me yǐn liào?","en":"What is your favourite drink?"},"你一般什么时候喝(饮料)？":{"py":"nǐ yì bān shén me shí hòu hē ( yǐn liào )?","en":"When do you usually drink (drinks)?"},"为了身体更健康，你会多吃哪些食物？":{"py":"wèi le shēn tǐ gèng jiàn kāng, nǐ huì duō chī nǎ xiē shí wù?","en":"To be healthier, which foods will you eat more of?"},"你会多吃什么食物让身体更好？":{"py":"nǐ huì duō chī shén me shí wù ràng shēn tǐ gèng hǎo?","en":"What food will you eat more of to make your body healthier?"},"你上小学的时候做过哪些运动？你觉得怎么样？":{"py":"nǐ shàng xiǎo xué de shí hòu zuò guò nǎ xiē yùn dòng? nǐ jué de zěn me yàng?","en":"What sports did you do when you were in primary school? What did you think of them?"},"你在小学喜欢做什么活动？你觉得怎么样？":{"py":"nǐ zài xiǎo xué xǐ huān zuò shén me huó dòng? nǐ jué de zěn me yàng?","en":"What activities did you like doing in primary school? What did you think of them?"},"你觉得现在的中学生睡觉睡得够不够？为什么？":{"py":"nǐ jué de xiàn zài de zhōng xué shēng shuì jiào shuì dé gòu bù gòu? wèi shén me?","en":"Do you think today's secondary school students get enough sleep? Why?"},"你每天睡几个小时？你觉得怎么样？":{"py":"nǐ měi tiān shuì jǐ gè xiǎo shí? nǐ jué de zěn me yàng?","en":"How many hours do you sleep every day? What do you think about it?"},"你一般去哪里买食物？":{"py":"nǐ yì bān qù nǎ lǐ mǎi shí wù?","en":"Where do you usually buy food?"},"去那里要多长时间？":{"py":"qù nà lǐ yào duō zhǎng shí jiān?","en":"How long does it take to get there?"},"你觉得商店应该给顾客塑料袋吗？为什么？":{"py":"nǐ jué de shāng diàn yīng gāi gěi gù kè sù liào dài ma? wèi shén me?","en":"Do you think shops should give customers plastic bags? Why?"},"买东西的时候，你常常用自己的袋子吗？为什么？":{"py":"mǎi dōng xī de shí hòu, nǐ cháng cháng yòng zì jǐ de dài zi ma? wèi shén me?","en":"When you shop, do you often use your own bag? Why?"},"说说你在学校做过什么对环境好的事情。":{"py":"shuō shuō nǐ zài xué xiào zuò guò shén me duì huán jìng hǎo de shì qíng.","en":"Tell me about something good for the environment that you have done at school."},"上个星期，你做了什么让学校环境更好？":{"py":"shàng gè xīng qī, nǐ zuò le shén me ràng xué xiào huán jìng gèng hǎo?","en":"Last week, what did you do to make your school environment better?"},"如果可能，你将来想住在海边吗？为什么？":{"py":"rú guǒ kě néng, nǐ jiāng lái xiǎng zhù zài hǎi biān ma? wèi shén me?","en":"If possible, would you like to live by the sea in the future? Why?"},"你以后想住在海边吗？为什么？":{"py":"nǐ yǐ hòu xiǎng zhù zài hǎi biān ma? wèi shén me?","en":"In the future, would you like to live by the sea? Why?"},"你喜欢发短信还是电子邮件？":{"py":"nǐ xǐ huān fā duǎn xìn hái shì diàn zi yóu jiàn?","en":"Do you prefer text messages or email?"},"你每天发多少个（短信/电子邮件）？":{"py":"nǐ měi tiān fā duō shǎo gè ( duǎn xìn / diàn zi yóu jiàn )?","en":"How many (text messages / emails) do you send every day?"},"说说你上个星期用了什么样的网站？":{"py":"shuō shuō nǐ shàng gè xīng qī yòng le shén me yàng de wǎng zhàn?","en":"Tell me what kinds of websites you used last week."},"你昨天上网做了什么？你觉得怎么样？":{"py":"nǐ zuó tiān shàng wǎng zuò le shén me? nǐ jué de zěn me yàng?","en":"What did you do online yesterday? What did you think of it?"},"你觉得中学生每天上网多长时间比较合适？为什么？":{"py":"nǐ jué de zhōng xué shēng měi tiān shàng wǎng duō zhǎng shí jiān bǐ jiào hé shì? wèi shén me?","en":"How long do you think is suitable for secondary school students to spend online every day? Why?"},"你觉得中学生上网的时间太长吗？为什么？":{"py":"nǐ jué de zhōng xué shēng shàng wǎng de shí jiān tài zhǎng ma? wèi shén me?","en":"Do you think secondary school students spend too long online? Why?"},"将来你打算上网学习哪些新的知识？为什么？":{"py":"jiāng lái nǐ dǎ suàn shàng wǎng xué xí nǎ xiē xīn de zhī shí? wèi shén me?","en":"In the future, what new things do you plan to learn online? Why?"},"你将来会上网学什么？为什么？":{"py":"nǐ jiāng lái huì shàng wǎng xué shén me? wèi shén me?","en":"In the future, what will you learn online? Why?"},"你是在哪个国家出生的？":{"py":"nǐ shì zài nǎ ge guó jiā chū shēng de?","en":"Which country were you born in?"},"你在那里生活了多久？":{"py":"nǐ zài nà lǐ shēng huó le duō jiǔ?","en":"How long have you lived there?"},"我将来去[国家]的时候，应该参观哪些地方？":{"py":"wǒ jiāng lái qù [ guó jiā ] de shí hòu, yīng gāi cān guān nǎ xiē dì fāng?","en":"When I go to [country] in the future, which places should I visit?"},"在那里，我应该去什么地方玩儿？":{"py":"zài nà lǐ, wǒ yīng gāi qù shén me dì fāng wán ér?","en":"Where should I go for fun there?"},"说说一个中国的传统节日。":{"py":"shuō shuō yí gè zhōng guó de chuán tǒng jié rì.","en":"Tell me about a traditional Chinese festival."},"春节的时候，中国人吃些什么？":{"py":"chūn jié de shí hòu, zhōng guó rén chī xiē shén me?","en":"What do Chinese people eat during Spring Festival?"},"做些什么？":{"py":"zuò xiē shén me?","en":"What do they do?"},"你觉得过节的时候，跟家人在一起重要吗？":{"py":"nǐ jué de guò jié de shí hòu, gēn jiā rén zài yì qǐ zhòng yào ma?","en":"Do you think being with family during festivals is important?"},"你喜欢跟家人过新年吗？":{"py":"nǐ xǐ huān gēn jiā rén guò xīn nián ma?","en":"Do you like celebrating New Year with your family?"},"你每天有几节课？":{"py":"nǐ měi tiān yǒu jǐ jié kè?","en":"How many lessons do you have each day?"},"你们的校长是男的还是女的？":{"py":"nǐ men de xiào zhǎng shì nán de hái shì nǚ de?","en":"Is your head teacher a man or a woman?"},"说说你去年学习汉语的经历。":{"py":"shuō shuō nǐ qù nián xué xí hàn yǔ de jīng lì.","en":"Tell me about your experience of learning Chinese last year."},"你去年中文学得怎么样？你觉得什么最有意思？":{"py":"nǐ qù nián zhōng wén xué dé zěn me yàng? nǐ jué de shén me zuì yǒu yì si?","en":"How did you do in Chinese last year? What did you find most interesting?"},"学校开家长会有什么好处？有什么坏处？":{"py":"xué xiào kāi jiā zhǎng huì yǒu shén me hǎo chù? yǒu shén me huài chù?","en":"What are the advantages of schools holding parents' meetings? What are the disadvantages?"},"学校有家长会好不好？为什么？":{"py":"xué xiào yǒu jiā zhǎng huì hǎo bù hǎo? wèi shén me?","en":"Is it good for a school to have parents' meetings? Why?"},"你暑假打算参加夏令营吗？为什么？":{"py":"nǐ shǔ jià dǎ suàn cān jiā xià lìng yíng ma? wèi shén me?","en":"Do you plan to go to a summer camp in the summer holiday? Why?"},"你假期想参加学校的活动吗？为什么？":{"py":"nǐ jià qī xiǎng cān jiā xué xiào de huó dòng ma? wèi shén me?","en":"Do you want to take part in school activities in the holidays? Why?"},"你喜欢听什么样的音乐？":{"py":"nǐ xǐ huān tīng shén me yàng de yīn yuè?","en":"What kind of music do you like to listen to?"},"你每天听多长时间的音乐？":{"py":"nǐ měi tiān tīng duō zhǎng shí jiān de yīn yuè?","en":"How long do you listen to music every day?"},"说说你上次去听音乐会的经历。":{"py":"shuō shuō nǐ shàng cì qù tīng yīn yuè huì de jīng lì.","en":"Tell me about the last time you went to a concert."},"你最近听音乐会是什么时候？":{"py":"nǐ zuì jìn tīng yīn yuè huì shì shén me shí hòu?","en":"When was the last time you went to a concert?"},"你跟谁一起去的？":{"py":"nǐ gēn shuí yì qǐ qù de?","en":"Who did you go with?"},"你觉得哪些爱好对我们好？":{"py":"nǐ jué de nǎ xiē ài hào duì wǒ men hǎo?","en":"Which hobbies do you think are good for us?"},"哪些爱好对我们不好？":{"py":"nǎ xiē ài hào duì wǒ men bù hǎo?","en":"Which hobbies are not good for us?"},"什么爱好对身体好？":{"py":"shén me ài hào duì shēn tǐ hǎo?","en":"What hobbies are good for your body?"},"什么爱好对身体不好？":{"py":"shén me ài hào duì shēn tǐ bù hǎo?","en":"What hobbies are not good for your body?"},"你暑假打算跟家人还是朋友出去玩儿？":{"py":"nǐ shǔ jià dǎ suàn gēn jiā rén hái shì péng yǒu chū qù wán ér?","en":"In the summer holiday, do you plan to go out with family or friends?"},"你今年夏天会跟朋友出去玩儿吗？":{"py":"nǐ jīn nián xià tiān huì gēn péng yǒu chū qù wán ér ma?","en":"Will you go out with friends this summer?"},"你今天穿什么颜色衣服？":{"py":"nǐ jīn tiān chuān shén me yán sè yī fú?","en":"What colour are the clothes you are wearing today?"},"是谁给你买的？":{"py":"shì shuí gěi nǐ mǎi de?","en":"Who bought them for you?"},"你觉得穿校服上学好吗？":{"py":"nǐ jué de chuān xiào fú shàng xué hǎo ma?","en":"Do you think it is good to wear a school uniform to school?"},"在学校，你喜欢穿校服吗？":{"py":"zài xué xiào, nǐ xǐ huān chuān xiào fú ma?","en":"Do you like wearing a school uniform at school?"},"挣钱以后，你打算去什么样的地方买衣服？":{"py":"zhèng qián yǐ hòu, nǐ dǎ suàn qù shén me yàng de dì fāng mǎi yī fú?","en":"After you start earning money, what kind of place do you plan to buy clothes from?"},"工作以后，你会上网买衣服吗？":{"py":"gōng zuò yǐ hòu, nǐ huì shàng wǎng mǎi yī fú ma?","en":"After you start working, will you buy clothes online?"},"你一般在家里做什么家务？":{"py":"nǐ yì bān zài jiā lǐ zuò shén me jiā wù?","en":"What housework do you usually do at home?"},"在家里，你帮家人洗衣服还是打扫房间？":{"py":"zài jiā lǐ, nǐ bāng jiā rén xǐ yī fú hái shì dǎ sǎo fáng jiān?","en":"At home, do you help your family wash clothes or clean the rooms?"},"在你家，谁会开车？":{"py":"zài nǐ jiā, shuí huì kāi chē?","en":"In your family, who can drive?"},"说说你最近一次坐汽车的经历。":{"py":"shuō shuō nǐ zuì jìn yī cì zuò qì chē de jīng lì.","en":"Tell me about the most recent time you travelled by car."},"你上次坐汽车是什么时候？":{"py":"nǐ shàng cì zuò qì chē shì shén me shí hòu?","en":"When was the last time you travelled by car?"},"在车上做了什么？":{"py":"zài chē shàng zuò le shén me?","en":"What did you do in the car?"},"你觉得骑自行车有什么好处？":{"py":"nǐ jué de qí zì xíng chē yǒu shén me hǎo chù?","en":"What are the advantages of riding a bicycle?"},"骑自行车好不好？":{"py":"qí zì xíng chē hǎo bù hǎo?","en":"Is riding a bicycle good?"},"下次去国外旅行，你打算坐火车还是飞机？":{"py":"xià cì qù guó wài lǚ xíng, nǐ dǎ suàn zuò huǒ chē hái shì fēi jī?","en":"On your next trip abroad, do you plan to go by train or by plane?"},"明年，你会坐火车还是飞机去旅行？":{"py":"míng nián, nǐ huì zuò huǒ chē hái shì fēi jī qù lǚ xíng?","en":"Next year, will you travel by train or by plane?"},"你的生日是几月几日？":{"py":"nǐ de shēng rì shì jǐ yuè jǐ rì?","en":"What is the date of your birthday (which month and day)?"},"你一般在哪里开生日派对？":{"py":"nǐ yì bān zài nǎ lǐ kāi shēng rì pài duì?","en":"Where do you usually have your birthday party?"},"你上一个生日是怎么过的？":{"py":"nǐ shàng yí gè shēng rì shì zěn me guò de?","en":"How did you spend your last birthday?"},"你去年过生日做了什么？":{"py":"nǐ qù nián guò shēng rì zuò le shén me?","en":"What did you do for your birthday last year?"},"你的好朋友快过生日了，你会送什么礼物？":{"py":"nǐ de hǎo péng yǒu kuài guò shēng rì le, nǐ huì sòng shén me lǐ wù?","en":"Your good friend's birthday is coming. What present will you give?"},"你的朋友星期天过生日，你会送他/她什么？":{"py":"nǐ de péng yǒu xīng qī tiān guò shēng rì, nǐ huì sòng tā / tā shén me?","en":"Your friend's birthday is on Sunday. What will you give him/her?"},"你一般庆祝哪些节日？":{"py":"nǐ yì bān qìng zhù nǎ xiē jié rì?","en":"Which festivals do you usually celebrate?"},"你过新年吗？":{"py":"nǐ guò xīn nián ma?","en":"Do you celebrate New Year?"},"你一般在哪儿过新年？":{"py":"nǐ yì bān zài nǎ ér guò xīn nián?","en":"Where do you usually celebrate New Year?"},"你住在哪儿？":{"py":"nǐ zhù zài nǎ ér?","en":"Where do you live?"},"那里的天气怎么样？":{"py":"nà lǐ de tiān qì zěn me yàng?","en":"What is the weather like there?"},"说说你为什么喜欢或者不喜欢去图书馆。":{"py":"shuō shuō nǐ wèi shén me xǐ huān huò zhě bù xǐ huān qù tú shū guǎn.","en":"Tell me why you like or do not like going to the library."},"你喜欢去图书馆吗？":{"py":"nǐ xǐ huān qù tú shū guǎn ma?","en":"Do you like going to the library?"},"说说你最近去公园的经历。":{"py":"shuō shuō nǐ zuì jìn qù gōng yuán de jīng lì.","en":"Tell me about the last time you went to a park."},"你上次去公园做了什么？":{"py":"nǐ shàng cì qù gōng yuán zuò le shén me?","en":"What did you do the last time you went to the park?"},"你将来想住在城市吗？":{"py":"nǐ jiāng lái xiǎng zhù zài chéng shì ma?","en":"In the future, would you like to live in a city?"},"你以后想住在北京吗？":{"py":"nǐ yǐ hòu xiǎng zhù zài běi jīng ma?","en":"In the future, would you like to live in Beijing?"},"你的学校在哪儿？":{"py":"nǐ de xué xiào zài nǎ ér?","en":"Where is your school?"},"你们早上几点开始上课？":{"py":"nǐ men zǎo shàng jǐ diǎn kāi shǐ shàng kè?","en":"What time do lessons start in the morning?"},"你认为你们的校园怎么样？":{"py":"nǐ rèn wéi nǐ men de xiào yuán zěn me yàng?","en":"What do you think of your school grounds?"},"你觉得你们学校漂亮吗？":{"py":"nǐ jué de nǐ men xué xiào piào liàng ma?","en":"Do you think your school is beautiful?"},"餐厅在哪儿？":{"py":"cān tīng zài nǎ ér?","en":"Where is the canteen?"},"说说你最近在学校参加的一个有趣的活动。":{"py":"shuō shuō nǐ zuì jìn zài xué xiào cān jiā de yí gè yǒu qù de huó dòng.","en":"Tell me about an interesting activity you took part in at school recently."},"去年你在学校做了什么好玩的活动？":{"py":"qù nián nǐ zài xué xiào zuò le shén me hǎo wán de huó dòng?","en":"What fun activity did you do at school last year?"},"中学毕业以后，你打算上大学还是找工作？":{"py":"zhōng xué bì yè yǐ hòu, nǐ dǎ suàn shàng dà xué hái shì zhǎo gōng zuò?","en":"After finishing secondary school, do you plan to go to university or find a job?"},"你想上大学吗？":{"py":"nǐ xiǎng shàng dà xué ma?","en":"Do you want to go to university?"},"你会说什么语言？":{"py":"nǐ huì shuō shén me yǔ yán?","en":"What languages can you speak?"},"你学中文多久了？":{"py":"nǐ xué zhōng wén duō jiǔ le?","en":"How long have you been learning Chinese?"},"你觉得学中文有用吗？":{"py":"nǐ jué de xué zhōng wén yǒu yòng ma?","en":"Do you think learning Chinese is useful?"},"你为什么学中文？":{"py":"nǐ wèi shén me xué zhōng wén?","en":"Why do you learn Chinese?"},"你对哪个国家感兴趣？":{"py":"nǐ duì nǎ ge guó jiā gǎn xìng qù?","en":"Which country are you interested in?"},"你最喜欢哪个国家？":{"py":"nǐ zuì xǐ huān nǎ ge guó jiā?","en":"Which country do you like best?"},"你下次旅游想住什么样的酒店？":{"py":"nǐ xià cì lǚ yóu xiǎng zhù shén me yàng de jiǔ diàn?","en":"What kind of hotel would you like to stay in on your next trip?"},"如果你明年去旅行，你会住大的酒店还是小的酒店？":{"py":"rú guǒ nǐ míng nián qù lǚ xíng, nǐ huì zhù dà de jiǔ diàn hái shì xiǎo de jiǔ diàn?","en":"If you travel next year, will you stay in a big hotel or a small hotel?"}}};
+const TEST = /[?&]test=1/.test(location.search);
+if (TEST) { CONFIG.SILENCE_SEC = 2; }
+
+/* ========= characters ========= */
+const MORE = ['还有呢？','你能再多说一点吗？'];
+const LEAD_GLOSS = {'嗯。':['èn.','Mm.'],'嗯嗯。':['èn èn.','Mm-hm.'],'嗯，我知道了。':['èn, wǒ zhī dào le.','Mm, I see.'],
+  '哦，这样啊。':['ò, zhè yàng a.','Oh, I see.'],'哦，原来这样。':['ò, yuán lái zhè yàng.','Oh, so that is how it is.'],
+  '好，':['hǎo,','OK,'],'好，好。':['hǎo, hǎo.','OK, OK.'],'那，':['nà,','So,'],'对了，':['duì le,','By the way,'],'接下来，':['jiē xià lái,','Next,']};
+const CHARS = [
+ {id:'lin', zh:'林老师', py:'Lín lǎoshī', en:'Ms Lin', role:'Your teacher 你的老师', bg:'#F6C177', skin:'#F0C4A0', hair:'#3A2A22', style:'teacher', shirt:'#C8553D', pitch:1.0,
+  hello:'你好！我是林老师。我们一起聊聊天儿吧。', leads:['嗯。','哦，这样啊。','好，','那，','接下来，']},
+ {id:'yu', zh:'小雨', py:'Xiǎo Yǔ', en:'Xiao Yu', role:'Your classmate 你的同学', bg:'#F4B6A6', skin:'#F3CBA8', hair:'#2E2019', style:'classmate', shirt:'#4F8A8B', pitch:1.15,
+  hello:'你好！我是小雨，是你的同学。我们聊聊天儿吧！', leads:['嗯嗯。','哦，原来这样。','好，','那，','对了，']},
+ {id:'zhi', zh:'志明', py:'Zhì Míng', en:'Zhi Ming', role:'Your pen-pal 你的笔友', bg:'#BFD8B8', skin:'#E9B98F', hair:'#2A1D17', style:'penpal', shirt:'#E0A030', pitch:1.05,
+  hello:'你好！我是志明，你的中国笔友。今天我们聊聊天儿吧。', leads:['嗯，我知道了。','哦，这样啊。','好，','那，','对了，']},
+ {id:'wang', zh:'王奶奶', py:'Wáng nǎinai', en:'Grandma Wang', role:'A friendly grandma 和蔼的奶奶', bg:'#E8C7D4', skin:'#EFC7A5', hair:'#C9C4BE', style:'grandma', shirt:'#8E5B8A', pitch:0.9,
+  hello:'你好啊！我是王奶奶。来，我们聊聊天儿。', leads:['嗯嗯。','哦，这样啊。','好，好。','那，','对了，']},
+ {id:'li', zh:'李叔叔', py:'Lǐ shūshu', en:'Uncle Li', role:'Your neighbour 你的邻居', bg:'#B9D3E6', skin:'#E6B48C', hair:'#5A4A40', style:'neighbour', shirt:'#5B7F5B', pitch:0.85,
+  hello:'你好！我是李叔叔，是你的邻居。我们聊聊天儿吧。', leads:['嗯。','哦，原来这样。','好，','那，','接下来，']}
+];
+function avatarSVG(c){
+  const hair=c.hair, skin=c.skin;
+  let back='', top='', extra='';
+  if(c.style==='classmate') back='<ellipse cx="74" cy="52" rx="8" ry="19" fill="'+hair+'"/>';
+  if(c.style==='grandma') top+='<circle cx="50" cy="17" r="9" fill="'+hair+'"/>';
+  const cap='<path d="M28 47 Q27 21 50 21 Q73 21 72 47 Q66 33 50 32 Q34 33 28 47Z" fill="'+hair+'"/>';
+  if(c.style==='penpal'){
+    top+='<path d="M28 46 Q28 22 50 22 Q72 22 72 46 Q66 36 50 35 Q34 36 28 46Z" fill="'+hair+'"/>'+
+         '<path d="M26 38 Q50 8 74 38Z" fill="#C8553D"/><path d="M58 36 h24 a3 3 0 0 1 0 6 h-24z" fill="#A5402B"/>';
+  } else top+=cap;
+  if(c.style==='teacher') extra+='<g fill="none" stroke="#3A2A22" stroke-width="2"><circle cx="41" cy="48" r="7"/><circle cx="59" cy="48" r="7"/><path d="M48 48h4"/></g>';
+  if(c.style==='neighbour') extra+='<path d="M39 60 Q50 54 61 60 Q50 63 39 60Z" fill="#3A2A22"/>';
+  return '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="'+c.en+'">'+
+   '<circle cx="50" cy="50" r="50" fill="'+c.bg+'"/><clipPath id="cp'+c.id+'"><circle cx="50" cy="50" r="50"/></clipPath><g clip-path="url(#cp'+c.id+')">'+
+   back+'<path d="M14 105 Q18 75 50 73 Q82 75 86 105Z" fill="'+c.shirt+'"/><rect x="44" y="64" width="12" height="12" rx="4" fill="'+skin+'"/>'+
+   '<ellipse cx="50" cy="48" rx="21" ry="23" fill="'+skin+'"/>'+top+
+   '<circle cx="42" cy="48" r="2.5" fill="#2B1D16"/><circle cx="58" cy="48" r="2.5" fill="#2B1D16"/>'+
+   '<circle cx="36" cy="57" r="4" fill="#E98A7A" opacity=".35"/><circle cx="64" cy="57" r="4" fill="#E98A7A" opacity=".35"/>'+
+   '<path d="M42 58 Q50 66 58 58" fill="none" stroke="#7A3B2B" stroke-width="2.2" stroke-linecap="round"/>'+extra+'</g></svg>';
+}
+
+/* ========= helpers ========= */
+const $ = s => document.querySelector(s);
+const esc = s => String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const sleep = ms => new Promise(r=>setTimeout(r, TEST?5:ms));
+const pick = a => a[Math.floor(Math.random()*a.length)];
+const hanCount = t => (t.match(/[一-鿿]/g)||[]).length;
+const COUNTRIES=[['中国','Zhōngguó','China'],['日本','Rìběn','Japan'],['法国','Fǎguó','France'],['澳大利亚','Àodàlìyà','Australia'],['英国','Yīngguó','the UK']];
+const S = {char:null, voiceOn:true, voice:null, log:[], cur:null, busy:false, listening:false, resolve:null, silenceId:null, silenceLeft:0,
+           timerId:null, timeLeft:0, timeUp:false, t:0, country:pick(COUNTRIES), quit:false, rec:null, live:'', t0:0, slow:false, lastText:''};
+
+function gloss(zh){
+  const g=BANK.gloss[zh]; if(!g) return null;
+  return {py:g.py.replace(/\[\s*guó\s*jiā\s*\]/,S.country[1]), en:g.en.replace('[country]',S.country[2])};
+}
+const showZh = zh => zh.replace('[国家]',S.country[0]);
+const speakable = zh => showZh(zh).replace(/\[停顿\]/g,'').replace(/[（(]([^）)]*)[）)]/g,'$1').replace(/\//g,'或者');
+
+/* ========= voice (text to speech) ========= */
+function loadVoices(){
+  if(!('speechSynthesis' in window)) return;
+  const vs=speechSynthesis.getVoices().filter(v=>/^zh/i.test(v.lang));
+  const pref=['Google 普通话','Xiaoxiao','Tingting','Ting-Ting','Huihui','Yaoyao','Lili','Meijia'];
+  S.voice = vs.find(v=>pref.some(p=>v.name.includes(p))) || vs.find(v=>/zh[-_]CN/i.test(v.lang)) || vs[0] || null;
+}
+if('speechSynthesis' in window){ loadVoices(); speechSynthesis.onvoiceschanged=loadVoices; }
+function speak(text, rate){
+  return new Promise(res=>{
+    if(TEST || !S.voiceOn || !('speechSynthesis' in window) || !S.voice){ setTimeout(res, TEST?0:Math.min(3000, 700+text.length*130)); return; }
+    try{ speechSynthesis.cancel(); }catch(e){}
+    const u=new SpeechSynthesisUtterance(text); u.lang='zh-CN'; u.voice=S.voice; u.rate=rate||CONFIG.RATE; u.pitch=S.char?S.char.pitch:1;
+    let done=false; const fin=()=>{ if(!done){done=true; clearTimeout(to); res();} };
+    u.onend=fin; u.onerror=fin; const to=setTimeout(fin, 3500+text.length*600/(u.rate/0.85));
+    speechSynthesis.speak(u);
+  });
+}
+
+/* ========= welcome screen ========= */
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+(function initWelcome(){
+  const list=$('#charList');
+  CHARS.forEach(c=>{
+    const b=document.createElement('button'); b.className='char'; b.setAttribute('aria-pressed','false'); b.dataset.id=c.id;
+    b.innerHTML=avatarSVG(c)+'<div class="n zh">'+c.zh+'</div><div class="p">'+c.py+'</div><div class="r">'+c.role+'</div>';
+    b.onclick=()=>{ S.char=c; list.querySelectorAll('.char').forEach(x=>x.setAttribute('aria-pressed',x===b)); $('#startBtn').disabled=false; };
+    list.appendChild(b);
+  });
+  let note='';
+  if(!SR) note+='<div class="notice bad">⚠️ This browser cannot listen to your voice. You can still <b>type</b> your answers, or open this page in Chrome or Edge to speak. <span class="zh">这个浏览器不能语音输入。你可以打字回答，或用Chrome / Edge打开本页来说话。</span></div>';
+  if(!('speechSynthesis' in window)) note+='<div class="notice">Your device cannot read questions aloud, so they will appear as text only. <span class="zh">你的设备不能朗读问题，只显示文字。</span></div>';
+  else setTimeout(()=>{ if(!S.voice && !TEST) $('#supportNote').insertAdjacentHTML('beforeend','<div class="notice">No Chinese voice was found on this device, so questions will show as text only. On Windows or Android you can add a Chinese voice in the system settings. <span class="zh">没有找到中文语音，问题只显示文字。</span></div>'); },1200);
+  $('#supportNote').innerHTML=note;
+  if(CONFIG.REQUIRE_CODE) $('#codeBox').style.display='inline-flex';
+  $('#startBtn').onclick=startSession;
+})();
+
+/* ========= conversation UI ========= */
+function setCue(html){ $('#cue').innerHTML=html; }
+function updateControls(){
+  const ready=!S.busy && !!S.resolve;
+  $('#typed').disabled=!ready; $('#bSend').disabled=!ready;
+  $('#bMic').disabled=!(ready && SR) && !S.listening;
+  ['bRepeat','bSlow'].forEach(id=>$('#'+id).disabled=!S.cur||S.busy||S.listening);
+  $('#bEasy').disabled=!ready||S.listening||!S.cur||!S.cur.canB||S.cur.usedB;
+}
+function addBubble(who, zh, opt={}){
+  const d=document.createElement('div'); d.className='msg '+(who==='char'?'bot':who);
+  if(who==='sys'){ d.innerHTML='<div class="bub">'+esc(zh)+'</div>'; }
+  else{
+    let g=opt.gloss===false?null:gloss(zh);
+    if(g && opt.lead && LEAD_GLOSS[opt.lead]){ g={py:LEAD_GLOSS[opt.lead][0]+' '+g.py, en:LEAD_GLOSS[opt.lead][1]+' '+g.en}; }
+    const shown=who==='char'?(opt.lead||'')+showZh(zh):zh;
+    d.innerHTML=(who==='char'?'<div class="av">'+avatarSVG(S.char)+'</div>':'')+
+      '<div class="bub"><div class="zh">'+esc(shown)+(opt.tag?'<span class="tag">'+esc(opt.tag)+'</span>':'')+'</div>'+
+      (g?'<div class="py">'+esc(g.py)+'</div><div class="en">'+esc(g.en)+'</div>':'')+'</div>';
+  }
+  $('#chat').appendChild(d); $('#chat').scrollTop=$('#chat').scrollHeight;
+}
+async function say(zh, opt={}){          // the partner speaks
+  S.busy=true; clearSilence(); updateControls(); setCue('🎧 '+S.char.zh+' is speaking… <span class="zh">正在说话</span>');
+  addBubble('char', zh, opt); S.lastText=zh;
+  await speak(speakable((opt.lead||'')+zh), S.slow?CONFIG.SLOW_RATE:CONFIG.RATE);
+  S.busy=false; updateControls();
+}
+function fmt(sec){ return Math.floor(sec/60)+':'+String(sec%60).padStart(2,'0'); }
+function startTopicTimer(){
+  clearInterval(S.timerId); S.timeLeft=CONFIG.TOPIC_SEC; S.timeUp=false; $('#barTimer').textContent='⏱ '+fmt(S.timeLeft); $('#barTimer').classList.remove('warn');
+  S.timerId=setInterval(()=>{ if(S.timeLeft>0){S.timeLeft--;} $('#barTimer').textContent='⏱ '+fmt(S.timeLeft);
+    $('#barTimer').classList.toggle('warn', S.timeLeft<=30);
+    if(S.timeLeft<=0 && !S.timeUp){ S.timeUp=true; } },1000);
+}
+function clearSilence(){ clearInterval(S.silenceId); S.silenceId=null; }
+function startSilence(){
+  clearSilence(); S.silenceLeft=CONFIG.SILENCE_SEC; paintWait();
+  S.silenceId=setInterval(()=>{
+    if(S.busy) return;
+    if(S.listening || $('#typed').value.trim()){ S.silenceLeft=CONFIG.SILENCE_SEC; paintWait(); return; }
+    S.silenceLeft--; paintWait();
+    if(S.silenceLeft<=0){ deliver({type:'silence'}); }
+  },1000);
+}
+function paintWait(){
+  if(S.listening) return;
+  setCue('✋ Your turn — speak or type <span class="zh">轮到你了</span><span class="meter"><i style="width:'+Math.max(0,S.silenceLeft/CONFIG.SILENCE_SEC*100)+'%"></i></span>');
+}
+function waitForInput(){ if(S.quit) return Promise.resolve({type:'quit'}); return new Promise(res=>{ S.resolve=res; updateControls(); startSilence(); $('#typed').focus && !('ontouchstart' in window) && $('#typed').focus(); }); }
+function deliver(r){ if(!S.resolve) return; const f=S.resolve; S.resolve=null; clearSilence(); stopRec(true); $('#typed').value=''; $('#live').textContent=''; updateControls(); f(r); }
+
+function submitText(text, mode){
+  text=(text||'').trim(); if(!text||!S.resolve) return;
+  addBubble('stu', text, {gloss:false});
+  deliver({type:'answer', text, mode});
+}
+$('#bSend').onclick=()=>submitText($('#typed').value,'typed');
+$('#typed').addEventListener('keydown',e=>{ if(e.key==='Enter' && !e.isComposing){ e.preventDefault(); submitText($('#typed').value,'typed'); } });
+$('#bRepeat').onclick=async()=>{ if(!S.cur||S.busy) return; S.cur.repeats++; clearSilence(); await say(S.lastText,{tag:'↻'}); startSilence(); };
+$('#bSlow').onclick=async()=>{ if(!S.cur||S.busy) return; S.cur.repeats++; S.slow=true; clearSilence(); await say(S.lastText,{tag:'🐢'}); S.slow=false; startSilence(); };
+$('#bEasy').onclick=()=>deliver({type:'easier'});
+let endArm=null;
+$('#bEnd').onclick=e=>{
+  const b=e.currentTarget;
+  if(!endArm){ b.innerHTML='Tap again to finish ✓ <span class="zh">再点一次结束</span>'; endArm=setTimeout(()=>{ endArm=null; b.innerHTML='Finish <span class="zh">结束</span>'; },4000); return; }
+  clearTimeout(endArm); endArm=null; b.innerHTML='Finish <span class="zh">结束</span>';
+  S.quit=true; deliver({type:'quit'});
+};
+$('#togPy').onclick=e=>{ const on=document.body.classList.toggle('py'); e.currentTarget.setAttribute('aria-pressed',on); };
+$('#togEn').onclick=e=>{ const on=document.body.classList.toggle('en'); e.currentTarget.setAttribute('aria-pressed',on); };
+$('#togVoice').onclick=e=>{ S.voiceOn=!S.voiceOn; e.currentTarget.setAttribute('aria-pressed',S.voiceOn); e.currentTarget.textContent=S.voiceOn?'🔊':'🔇'; if(!S.voiceOn) try{speechSynthesis.cancel()}catch(_){} };
+
+/* ========= speech recognition ========= */
+function stopRec(silent){
+  if(S.rec){ S.rec.__silent=!!silent; try{ S.rec.stop(); }catch(e){} }
+}
+$('#bMic').onclick=()=>{
+  if(S.listening){ stopRec(false); return; }
+  if(!SR||!S.resolve||S.busy) return;
+  try{ speechSynthesis.cancel(); }catch(e){}
+  const rec=new SR(); S.rec=rec; rec.lang='zh-CN'; rec.continuous=true; rec.interimResults=true; rec.maxAlternatives=1;
+  let fin='', gotErr=null; S.live='';
+  rec.onstart=()=>{ S.listening=true; $('#bMic').classList.add('rec'); $('#bMic').textContent='■'; setCue('🔴 Listening… tap ■ when you finish <span class="zh">正在听…说完请点 ■</span>'); updateControls(); $('#bMic').disabled=false; };
+  rec.onresult=e=>{ let interim=''; for(let i=e.resultIndex;i<e.results.length;i++){ const r=e.results[i]; if(r.isFinal) fin+=r[0].transcript; else interim+=r[0].transcript; }
+    S.live=fin+interim; $('#live').textContent=S.live; S.silenceLeft=CONFIG.SILENCE_SEC; };
+  rec.onerror=e=>{ gotErr=e.error; };
+  rec.onend=()=>{
+    S.listening=false; $('#bMic').classList.remove('rec'); $('#bMic').textContent='🎤';
+    const text=(fin||S.live||'').trim(); const silent=rec.__silent; S.rec=null; $('#live').textContent='';
+    if(silent) { updateControls(); return; }
+    if(text) submitText(text,'voice');
+    else{
+      let msg='I did not hear anything. Tap 🎤 and try again, or type. <span class="zh">没听到声音。请再点 🎤，或者打字。</span>';
+      if(gotErr==='not-allowed'||gotErr==='service-not-allowed') msg='🔒 The microphone is blocked. Allow it in your browser settings, or type your answer. <span class="zh">麦克风被禁用。请在浏览器设置里允许，或者打字回答。</span>';
+      else if(gotErr==='network') msg='Voice recognition needs an internet connection. You can type instead. <span class="zh">语音识别需要网络。你可以打字。</span>';
+      setCue(msg); updateControls(); startSilence();
+    }
+  };
+  try{ rec.start(); }catch(err){ setCue('Could not start the microphone. Please type your answer. <span class="zh">无法启动麦克风，请打字回答。</span>'); }
+};
+
+/* ========= the examiner flow ========= */
+function buildItems(topic){
+  const it=[]; topic.warmups.forEach((w,i)=>it.push({kind:'warm-up',A:[w],B:null}));
+  topic.mains.forEach(m=>it.push({kind:'main',A:m.A,B:m.B}));
+  return it;
+}
+function newEx(item,n,text,useB){ const ex={t:S.t+1,n,kind:item.kind,q:showZh(text),version:useB?'B (easier)':'A',a:'',prompted:false,repeats:0,silent:false,mode:'',canB:!!item.B,usedB:useB}; S.log.push(ex); S.cur=ex; return ex; }
+async function askItem(item,n,leadIn){
+  let useB=false, p=0, parts=item.A, lead=leadIn||'';
+  while(p<parts.length){
+    let repeated=false;
+    for(;;){
+      const text=parts[p];
+      const ex=newEx(item,n,text,useB);
+      await say(text,lead?{lead}:{}); lead=''; if(S.quit) return 'quit';
+      const r=await waitForInput();
+      if(S.quit||r.type==='quit') return 'quit';
+      if(r.type==='answer'){
+        ex.a=r.text; ex.mode=r.mode;
+        if(item.kind==='main' && hanCount(r.text)<9){
+          ex.prompted=true; await say(pick(MORE)); if(S.quit) return 'quit';
+          const r2=await waitForInput();
+          if(S.quit||r2.type==='quit') return 'quit';
+          if(r2.type==='answer'){ ex.a+=' '+r2.text; if(ex.mode!==r2.mode) ex.mode='mixed'; }
+        }
+        break;
+      }
+      // silence, or the student asked for an easier question
+      if(item.B && !useB){
+        ex.note='no answer; easier version given'; useB=true; parts=item.B;
+        if(p>0) p=Math.min(p,parts.length-1);   // already part-way: carry on with the matching part, else start the easier version from its first part
+        await say('没关系。我换一种问法。'); continue;
+      }
+      if(!repeated){ repeated=true; ex.note='no answer; question repeated'; await say('我再说一遍。'); continue; }
+      ex.silent=true; ex.note='no answer'; await say('没关系。我们说下一个问题。'); return 'skipped';
+    }
+    p++; if(p<parts.length){ setCue('…'); await sleep(900); }
+  }
+  return 'ok';
+}
+async function runSession(){
+  S.log=[]; S.quit=false; S.t0=Date.now(); S.cur=null;
+  const ids=new Set(); const pool=BANK.topics.slice().sort(()=>Math.random()-.5); const chosen=[];
+  for(const t of pool){ const k=t.label.replace(/^Topic \d+:?\s*/,'')||t.id; if(!ids.has(k)){ ids.add(k); chosen.push(t); } if(chosen.length===2) break; }
+  await sleep(300); await say(S.char.hello);
+  for(let ti=0; ti<2; ti++){
+    S.t=ti; $('#barProg').textContent='Topic '+(ti+1)+'/2 · 话题'+(ti?'二':'一'); startTopicTimer();
+    addBubble('sys', ti===0?'Topic 1 — about 4 minutes · 话题一':'Topic 2 — about 4 minutes · 话题二');
+    await say(ti===0?'第一个话题。':'好，我们说第二个话题。');
+    const items=buildItems(chosen[ti]);
+    for(let qi=0; qi<items.length; qi++){
+      if(S.timeUp && qi>=2) break;
+      $('#barProg').textContent='Topic '+(ti+1)+'/2 · Q'+(qi+1)+'/'+items.length;
+      const lead=(qi>0&&Math.random()<0.85)?pick(S.char.leads):'';
+      const res=await askItem(items[qi],qi+1,lead);
+      if(res==='quit'){ clearInterval(S.timerId); return finish(true); }
+    }
+    clearInterval(S.timerId);
+  }
+  await say('谢谢你！我们说完了。');
+  finish(false);
+}
+function startSession(){
+  if(!S.char) return;
+  S.voiceOn=$('#optVoice').checked; $('#togVoice').setAttribute('aria-pressed',S.voiceOn); $('#togVoice').textContent=S.voiceOn?'🔊':'🔇';
+  S.code=($('#codeIn').value||'').trim();
+  if(CONFIG.REQUIRE_CODE && !S.code){ $('#supportNote').insertAdjacentHTML('beforeend','<div class="notice bad">Please type the class code. 请输入班级代码。</div>'); return; }
+  S.country=pick(COUNTRIES);
+  $('#chat').innerHTML=''; $('#barAv').innerHTML=avatarSVG(S.char); $('#barName').textContent=S.char.zh; $('#barRole').textContent=S.char.role;
+  show('conv'); runSession();
+}
+function show(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id===id)); window.scrollTo(0,0); }
+
+/* ========= report ========= */
+function bandOf(m){ return m>=13?'Very good':m>=10?'Good':m>=7?'Satisfactory':m>=4?'Weak':m>=1?'Poor':'No creditable response'; }
+function transcriptPayload(){
+  return S.log.map(e=>({topic:e.t, number:e.n, type:e.kind, question:e.q, version:e.version, answer:e.a||'', no_response:!e.a, examiner_prompted_for_more:e.prompted, repeats_or_slow_requests:e.repeats, input:e.mode||'', note:e.note||''}));
+}
+async function finish(early){
+  stopRec(true); try{speechSynthesis.cancel()}catch(e){}
+  const answered=S.log.filter(e=>e.a).length;
+  if(answered<2){ show('welcome'); $('#supportNote').insertAdjacentHTML('beforeend','<div class="notice bad">Not enough answers to mark yet — please try again. 回答太少，暂时无法评分。</div>'); return; }
+  show('report');
+  $('#repBody').innerHTML='<div class="loader"><div class="spin"></div><b>Marking your conversation…</b><br><span class="zh sub">正在批改你的对话…</span></div>';
+  try{
+    let rep;
+    if(!CONFIG.API_URL) { await sleep(1400); rep=demoReport(); }
+    else{
+      const res=await fetch(CONFIG.API_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:S.code||'',transcript:transcriptPayload(),meta:{finished_early:!!early,minutes:Math.round((Date.now()-S.t0)/60000)}})});
+      if(res.status===429){ throw new Error('limit'); }
+      if(res.status===401){ throw new Error('code'); }
+      if(!res.ok) throw new Error('http '+res.status);
+      rep=await res.json(); rep._demo=false;
+    }
+    renderReport(rep);
+  }catch(err){
+    const m=String(err.message||err);
+    const msg = m==='limit' ? 'You have used today\'s free practice limit. Please try again tomorrow. <span class="zh">今天的免费练习次数已用完，请明天再来。</span>'
+              : m==='code' ? 'The class code is not correct. <span class="zh">班级代码不正确。</span>'
+              : 'Sorry, the marking service could not be reached. Your conversation is below, so you can copy it and try again later. <span class="zh">抱歉，批改服务暂时连不上。你的对话记录在下面，可以复制。</span>';
+    $('#repBody').innerHTML='<div class="notice bad">'+msg+'</div><div class="card"><h3>Your conversation</h3>'+plainTranscript().split('\n').map(esc).join('<br>')+'</div><div class="rowbtn"><button class="btn ghost" onclick="location.reload()">Start again 重新开始</button></div>';
+  }
+}
+function plainTranscript(){ return S.log.map(e=>'T'+e.t+' Q'+e.n+' ['+e.version+']\n'+e.q+'\n→ '+(e.a||'(no answer)')).join('\n'); }
+
+function demoReport(){
+  const mains=S.log.filter(e=>e.kind==='main'&&e.a); const avg=mains.length?mains.reduce((s,e)=>s+hanCount(e.a),0)/mains.length:0;
+  const usedB=S.log.filter(e=>e.usedB).length;
+  let c=avg<5?5:avg<9?8:avg<16?10:avg<26?12:13; c=Math.max(1,c-Math.min(2,usedB)); const l=Math.max(1,c-1);
+  const all=S.log.filter(e=>e.a).map(e=>e.a).join(' ');
+  const pats=[['因为…所以…',/因为|所以/],['但是 (contrast)',/但是|可是/],['了 (completed action)',/了/],['比 (comparison)',/比/],['想 / 打算 / 会 (future)',/想|打算|会/],['觉得 (opinion)',/觉得|认为/],['还有 / 也 (adding)',/还有|也|而且/],['如果…就… (if)',/如果/],['一边…一边…',/一边/]];
+  const grammar=[]; pats.forEach(([n,re])=>{ const seg=all.split(/[，。！？,.!? ]+/).find(s=>re.test(s)); if(seg) grammar.push({structure:n,example:seg,verdict:'ok',note:'(sample) the live AI checks whether it is used correctly'}); });
+  return {_demo:true, communication:{mark:c,reasons:['Sample text. With the AI connected, this explains the mark using the official descriptors and quotes your answers.'],evidence:[]},
+    language:{mark:l,reasons:['Sample text. The AI will comment on structures, vocabulary and fluency.'],evidence:[]},
+    grammar:grammar.slice(0,6), grammar_to_try:[{structure:'除了…以外，还…',example_zh:'除了足球，我还喜欢游泳。',pinyin:'Chúle zúqiú, wǒ hái xǐhuan yóuyǒng.',meaning:'Besides football, I also like swimming.'}],
+    vocabulary:{used_well:[{word:'喜欢',pinyin:'xǐhuan',meaning:'to like'}],overused:[{word:'很好',suggestion:'Try 不错 / 很有意思 / 特别棒'}],to_try:[{word:'方便',pinyin:'fāngbiàn',meaning:'convenient',example:'坐地铁很方便。'}]},
+    questions:S.log.filter(e=>e.kind==='main'&&e.a&&e.version==='A').slice(0,6).map(e=>({question:e.q,your_answer:e.a,better_answer:'(Demo) With the AI connected, this box shows an improved version of YOUR answer: the same ideas, plus a reason or one extra detail, in simple A2 words.',better_pinyin:'',why:'(Demo) A one-line explanation of what was added and why.'})),
+    corrections:[{original:'(example) 我很喜欢吃饭面条',corrected:'我很喜欢吃面条',explanation:'Sample layout only.'}],
+    next_steps:['Sample: add a reason with 因为 to every opinion answer.','Sample: when asked about the past, use 了 and a time word.','Sample: answer "还有呢？" with a second idea before the examiner asks.'],
+    encouragement:'This is a SAMPLE report so you can see the layout. Real feedback appears when the site is connected to the AI.'};
+}
+function listHtml(a){ return a&&a.length?'<ul>'+a.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul>':''; }
+function verdictHtml(v){ v=(v||'').toLowerCase(); return v==='correct'||v==='ok'?'<span class="ok">✓ correct</span>':v==='error'?'<span class="bad">✗ error</span>':'<span class="mid">~ partly</span>'; }
+let LASTREP=null;
+function renderReport(r){
+  LASTREP=r;
+  const c=Math.max(0,Math.min(15,Math.round(+r.communication.mark||0))), l=Math.max(0,Math.min(15,Math.round(+r.language.mark||0)));
+  const g=r.grammar||[], v=r.vocabulary||{}, q=r.questions||[], co=r.corrections||[];
+  let h='';
+  if(r._demo) h+='<div class="notice bad"><b>SAMPLE REPORT — demo mode.</b> The marks below come from a simple answer-length rule and the text is placeholder. Connect the AI to see real feedback.</div>';
+  h+='<div class="hero" style="padding-top:6px"><h1 style="font-size:34px">Your report <span class="zh">你的报告</span></h1></div>';
+  h+='<div class="scores"><div class="sc total"><div class="big">'+(c+l)+'<small>/30</small></div><div class="lab">Estimated total <span class="zh">估计总分</span></div></div>'+
+     '<div class="sc"><div class="big">'+c+'<small>/15</small></div><div class="lab">Communication <span class="zh">交际</span></div><span class="band">'+bandOf(c)+'</span></div>'+
+     '<div class="sc"><div class="big">'+l+'<small>/15</small></div><div class="lab">Quality of Language <span class="zh">语言质量</span></div><span class="band">'+bandOf(l)+'</span></div></div>';
+  h+='<div class="notice">This is an <b>estimate</b> from a text transcript, using the 0547 topic-conversation band descriptors. Pronunciation and tones are <b>not</b> assessed, and speech recognition can hide mistakes. Use it as practice guidance, not an exam result. <span class="zh">这是根据文字记录得出的<b>估计分</b>，不评估发音和声调。</span></div>';
+  if(r.encouragement) h+='<div class="card"><b>'+esc(r.encouragement)+'</b></div>';
+  h+='<div class="card"><h3>Why this mark: Communication</h3>'+listHtml(r.communication.reasons)+(r.communication.evidence&&r.communication.evidence.length?'<details><summary>Examples from your answers</summary>'+listHtml(r.communication.evidence)+'</details>':'')+'</div>';
+  h+='<div class="card"><h3>Why this mark: Language</h3>'+listHtml(r.language.reasons)+(r.language.evidence&&r.language.evidence.length?'<details><summary>Examples from your answers</summary>'+listHtml(r.language.evidence)+'</details>':'')+'</div>';
+  if(g.length){ h+='<div class="card"><h3>Grammar structures you used <span class="zh">你用到的语法</span></h3><table><tr><th>Structure</th><th>Your sentence</th><th></th></tr>'+g.map(x=>'<tr><td class="zh"><b>'+esc(x.structure)+'</b></td><td class="zh">'+esc(x.example)+'<div class="fine">'+esc(x.note||'')+'</div></td><td>'+verdictHtml(x.verdict)+'</td></tr>').join('')+'</table></div>'; }
+  if((r.grammar_to_try||[]).length){ h+='<div class="card"><h3>Structures to try next <span class="zh">下次试试</span></h3>'+r.grammar_to_try.map(x=>'<div class="qa"><b class="zh">'+esc(x.structure)+'</b> — '+esc(x.meaning||'')+'<br><span class="zh">'+esc(x.example_zh||'')+'</span><br><span class="fine">'+esc(x.pinyin||'')+'</span></div>').join('')+'</div>'; }
+  if((v.used_well||[]).length||(v.to_try||[]).length||(v.overused||[]).length){
+    h+='<div class="card"><h3>Vocabulary <span class="zh">词汇</span></h3>';
+    if((v.used_well||[]).length) h+='<div class="lbl">Used well</div>'+v.used_well.map(w=>'<span class="chipw"><b class="zh">'+esc(w.word)+'</b> <span class="fine">'+esc(w.pinyin||'')+' · '+esc(w.meaning||'')+'</span></span>').join('');
+    if((v.overused||[]).length) h+='<div class="lbl" style="margin-top:10px">Used a lot — try variety</div><ul>'+v.overused.map(w=>'<li><b class="zh">'+esc(w.word)+'</b>: '+esc(w.suggestion||'')+'</li>').join('')+'</ul>';
+    if((v.to_try||[]).length) h+='<div class="lbl" style="margin-top:10px">Words to add</div>'+v.to_try.map(w=>'<div class="qa"><b class="zh">'+esc(w.word)+'</b> <span class="fine">'+esc(w.pinyin||'')+' · '+esc(w.meaning||'')+'</span><br><span class="zh">'+esc(w.example||'')+'</span></div>').join('');
+    h+='</div>';
+  }
+  if(q.length){ h+='<div class="card"><h3>Make your answers better <span class="zh">怎样回答得更好</span></h3>'+q.map(x=>'<div class="qa"><div class="q zh">'+esc(x.question)+'</div><div class="you"><span class="lbl">You said</span><br><span class="zh">'+esc(x.your_answer)+'</span></div><div class="better"><span class="lbl">A better version</span><br><span class="zh" style="font-size:18px">'+esc(x.better_answer)+'</span>'+(x.better_pinyin?'<div class="fine">'+esc(x.better_pinyin)+'</div>':'')+'</div><div class="fine">'+esc(x.why||'')+'</div></div>').join('')+'</div>'; }
+  if(co.length){ h+='<div class="card"><h3>Corrections <span class="zh">改错</span></h3><table><tr><th>You said</th><th>Better</th><th>Why</th></tr>'+co.map(x=>'<tr><td class="zh">'+esc(x.original)+'</td><td class="zh ok">'+esc(x.corrected)+'</td><td>'+esc(x.explanation||'')+'</td></tr>').join('')+'</table></div>'; }
+  if((r.next_steps||[]).length) h+='<div class="card"><h3>Your next steps <span class="zh">下一步</span></h3>'+listHtml(r.next_steps)+'</div>';
+  h+='<div class="rowbtn"><button class="btn" onclick="location.reload()">Practise again 再练一次</button><button class="btn ghost" id="cpBtn">Copy report 复制</button><button class="btn ghost" onclick="window.print()">Print / save PDF 打印</button></div>';
+  $('#repBody').innerHTML=h;
+  $('#cpBtn').onclick=async()=>{ const t=reportText(r,c,l); try{ await navigator.clipboard.writeText(t); $('#cpBtn').textContent='Copied ✓'; }catch(e){ prompt('Copy this text:',t); } };
+}
+function reportText(r,c,l){
+  let t='0547 Topic Conversation practice — estimated mark '+(c+l)+'/30 (Communication '+c+'/15, Language '+l+'/15)\n\n';
+  t+='Communication:\n- '+(r.communication.reasons||[]).join('\n- ')+'\n\nLanguage:\n- '+(r.language.reasons||[]).join('\n- ')+'\n\n';
+  t+='Grammar used:\n'+(r.grammar||[]).map(x=>'- '+x.structure+': '+x.example+' ('+x.verdict+')').join('\n')+'\n\n';
+  t+='Better answers:\n'+(r.questions||[]).map(x=>x.question+'\n  You: '+x.your_answer+'\n  Better: '+x.better_answer).join('\n')+'\n\n';
+  t+='Next steps:\n- '+(r.next_steps||[]).join('\n- ')+'\n\nConversation:\n'+plainTranscript();
+  return t;
+}
+</script>
+</body>
+</html>
